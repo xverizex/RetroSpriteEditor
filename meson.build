@@ -6,6 +6,7 @@ project('retrospriteeditor', 'c',
 
 i18n = import('i18n')
 gnome = import('gnome')
+libxml2 = import('libxml2')
 cc = meson.get_compiler('c')
 
 config_h = configuration_data()
