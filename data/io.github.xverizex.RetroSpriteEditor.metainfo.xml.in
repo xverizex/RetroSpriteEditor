@@ -4,6 +4,26 @@
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
 	<description>
-	  <p>No description</p>
+	  <p>A drawing tool for retro consoles.</p>
+
+		<h3>Available platforms</h3>
+		<ul>
+			<li>NES</li>
+		</ul>
+		<h3>Features</h3>
+		<ul>
+			<il>saving to NES format</il>
+			<il>pencil for pixel art</il>
+			<il>completely free software</il>
+		</ul>
+		<h3>NES</h3>
+		<ul>
+			<li>4 palettes to choose from, which can be customized.</li>
+			<li>two memory banks for spries and backgrounds.</li>
+			<li>showing the color index numbers.</li>
+		</ul>
 	</description>
+	<screenshots>
+		<screenshot>https://github.com/xverizex/RetroSpriteEditor/blob/master/screenshots/0.png</screenshot>
+	</screenshots>
 </component>
