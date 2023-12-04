@@ -3,6 +3,9 @@
 	<id>io.github.xverizex.RetroSpriteEditor.desktop</id>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
+	<name>Retro Sprite Editor</name>
+	<developer_name>Dmitrii Naidolinskii</developer_name>
+	<summary>The pixel editor for retro consoles.</summary>
 	<description>
 	  <p>A drawing tool for retro consoles.</p>
 
@@ -24,6 +27,12 @@
 		</ul>
 	</description>
 	<screenshots>
-		<screenshot>https://github.com/xverizex/RetroSpriteEditor/blob/master/screenshots/0.png</screenshot>
+		<screenshot type="default">
+			<image>https://github.com/xverizex/RetroSpriteEditor/blob/master/screenshots/0.png</image>
+		</screenshot>
 	</screenshots>
+	<update_contact>horisontdawn@yandex.ru</udate_contact>
+	<url type="homepage">https://github.com/xverizex/RetroSpriteEditor</url>
+	<url type="donation">https://www.donationalerts.com/r/xverizex</url>
+	<url type="bugtracker">https://github.com/xverizex/RetroSpriteEditor/issues</url>
 </component>
