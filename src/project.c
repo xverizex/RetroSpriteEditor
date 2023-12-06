@@ -26,11 +26,25 @@ struct Project *prj;
 
 void project_free (void)
 {
-	if (prj->folder_path)
+	if (prj->folder_path) {
 		g_free (prj->folder_path);
+		prj->folder_path = NULL;
+	}
 
-	if (prj->name)
-		g_free (prj->folder_path);
+	if (prj->name) {
+		g_free (prj->name);
+		prj->name = NULL;
+	}
+
+	if (prj->fullpath_to_project) {
+		g_free (prj->fullpath_to_project);
+		prj->fullpath_to_project = NULL;
+	}
+
+	if (prj->file_to_export) {
+		g_free (prj->file_to_export);
+		prj->file_to_export = NULL;
+	}
 }
 
 static void
@@ -81,7 +95,7 @@ project_set_folder_and_name (const char *folder, const char *name)
 	prj->folder_path = g_strdup (folder);
 	prj->name = g_strdup (name);
 	prj->fullpath_to_project = g_strdup_printf ("%s/%s.rse", folder, name);
-	prj->file_to_export = g_strdup_printf ("%s/%s.bin", folder, "out_data");
+	prj->file_to_export = g_strdup_printf ("%s/%s.chr", folder, name);
 
 	xmlTextWriterPtr writer;
 	write_header (&writer);
@@ -239,11 +253,25 @@ read_tilemap_and_set_nes (void)
 	g_free (data);
 }
 
+static void
+parse_and_set_project_header (char *filepath)
+{
+	char *folder = g_strdup (filepath);
+	char *name = strrchr (folder, '/');
+	if (name) {
+		*name = 0;
+		name++;
+	}
+	char *n = strstr (name, ".rse");
+	if (n)
+		*n = 0;
+	project_set_folder_and_name (folder, name);
+}
+
 void
 project_open_nes (char *filepath)
 {
-	if (prj == NULL)
-		prj = g_malloc0 (sizeof (struct Project));
+	parse_and_set_project_header (filepath);
 
 	xmlTextReaderPtr reader;
 	reader = xmlNewTextReaderFilename (filepath);

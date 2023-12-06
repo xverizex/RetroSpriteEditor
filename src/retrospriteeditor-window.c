@@ -44,7 +44,7 @@ struct _RetrospriteeditorWindow
   AdwApplicationWindow  parent_instance;
 
   GtkWidget           *header_bar;
-  GtkWidget           *general_layout;
+  GtkWidget           *general_layout_nes;
   GtkWidget           *menu_button;
   GtkWidget           *vert_layout;
   GtkWidget           *palette;
@@ -56,6 +56,7 @@ struct _RetrospriteeditorWindow
   GtkWidget           *tool_button_pencil;
 	GtkWidget  					*new_project_nes_window;
 	int  								first;
+	gint32							last_platform;
 };
 
 G_DEFINE_FINAL_TYPE (RetrospriteeditorWindow, retrospriteeditor_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -86,28 +87,31 @@ action_menu (GSimpleAction *simple,
 	RetrospriteeditorWindow *self = RETROSPRITEEDITOR_WINDOW (user_data);
 
 }
-static void
-clean_general_layout_if_contains (RetrospriteeditorWindow *self)
+void
+connect_widgets (RetrospriteeditorWindow *self)
 {
-	/*
-	 *
-	 * TODO: this is a bug. I don't know how to fix this. Here is memory leak, 
-	 * if open project multiple times.
-	 */
 	if (!self->first) {
 		self->first = 1;
+		switch (global_type_palette_get_cur_platform ()) {
+			case PLATFORM_PALETTE_NES:
+				self->last_platform = PLATFORM_PALETTE_NES;
+				gtk_box_append (GTK_BOX (self->vert_layout), self->general_layout_nes);
+				break;
+		}
 		return;
 	}
-#if 0
-	gtk_box_remove (GTK_BOX (self->general_layout), self->frame_tools);
-	gtk_box_remove (GTK_BOX (self->general_layout), self->scroll_window_canvas);	
-	gtk_box_remove (GTK_BOX (self->general_layout), self->palette);
-#endif
-	gtk_widget_unparent (self->general_layout);
-	//g_object_unref (self->general_layout);
-	self->general_layout = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
-	gtk_box_append (GTK_BOX (self->vert_layout), self->general_layout);
 
+	switch (self->last_platform) {
+		case PLATFORM_PALETTE_NES:
+			gtk_widget_set_visible (self->general_layout_nes, FALSE);
+			break;
+	}
+	switch (global_type_palette_get_cur_platform ()) {
+		case PLATFORM_PALETTE_NES:
+			self->last_platform = PLATFORM_PALETTE_NES;
+			gtk_widget_set_visible (self->general_layout_nes, TRUE);
+			break;
+	}
 }
 
 static void
@@ -128,8 +132,7 @@ async_selected_project (GObject *source_object,
 
 	char *c_project = g_strdup (g_file_get_path (project));
 
-	clean_general_layout_if_contains (self);
-	create_nes_widgets (self);
+	connect_widgets (self);
 	project_open_nes (c_project);
 }
 
@@ -183,6 +186,7 @@ action_save_project (GSimpleAction *simple,
 	project_save_palettes ();
 }
 
+
 void
 create_nes_widgets (RetrospriteeditorWindow *self)
 {
@@ -202,10 +206,9 @@ create_nes_widgets (RetrospriteeditorWindow *self)
   self->frame_tools = gtk_frame_new ("Tools");
 
 
-  gtk_box_append (GTK_BOX (self->general_layout), self->frame_tools);
-  gtk_box_append (GTK_BOX (self->general_layout), self->scroll_window_canvas);
-  gtk_box_append (GTK_BOX (self->general_layout), self->palette);
-
+  gtk_box_append (GTK_BOX (self->general_layout_nes), self->frame_tools);
+  gtk_box_append (GTK_BOX (self->general_layout_nes), self->scroll_window_canvas);
+  gtk_box_append (GTK_BOX (self->general_layout_nes), self->palette);
 
   self->box_tools = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
 
@@ -283,6 +286,7 @@ retrospriteeditor_window_init (RetrospriteeditorWindow *self)
 {
 	global = self;
 	self->first = 0;
+	self->last_platform = -1;
 
 	xmlInitParser ();
 
@@ -321,13 +325,14 @@ retrospriteeditor_window_init (RetrospriteeditorWindow *self)
 
   self->vert_layout = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 
-  self->general_layout = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  self->general_layout_nes = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
   adw_application_window_set_content (ADW_APPLICATION_WINDOW (self), self->vert_layout);
   gtk_window_set_default_size (GTK_WINDOW (self), DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
 
   gtk_box_append (GTK_BOX (self->vert_layout), self->header_bar);
-  gtk_box_append (GTK_BOX (self->vert_layout), self->general_layout);
 
 	gtk_window_set_title (GTK_WINDOW (self), "Retro Sprite Editor");
+
+	create_nes_widgets (self);
 }

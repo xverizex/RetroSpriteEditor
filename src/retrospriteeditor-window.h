@@ -30,5 +30,7 @@ G_DECLARE_FINAL_TYPE (RetrospriteeditorWindow, retrospriteeditor_window, RETROSP
 
 G_END_DECLS
 
+void connect_widgets (RetrospriteeditorWindow *self);
+
 RetrospriteeditorWindow *main_window_get (void);
 void create_nes_widgets (RetrospriteeditorWindow *self);

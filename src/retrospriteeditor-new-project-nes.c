@@ -95,7 +95,7 @@ click_create_project (GtkButton *btn, gpointer user_data)
 	project_set_folder_and_name (location, project_name);
 
 	RetrospriteeditorWindow *win = main_window_get ();
-	create_nes_widgets (win);
+	connect_widgets (win);
 	gtk_window_close (GTK_WINDOW (self));
 }
 
