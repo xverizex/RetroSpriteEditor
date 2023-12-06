@@ -22,6 +22,7 @@
 
 #include "retrospriteeditor-tool-button.h"
 
+typedef struct _RetrospriteeditorToolButton RetrospriteeditorToolButton;
 typedef struct _RetrospriteeditorToolButtonPrivate RetrospriteeditorToolButtonPrivate;
 
 struct _RetrospriteeditorToolButtonPrivate
@@ -29,7 +30,8 @@ struct _RetrospriteeditorToolButtonPrivate
   guint32          tool_index;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE (RetrospriteeditorToolButton, retrospriteeditor_tool_button, GTK_TYPE_TOGGLE_BUTTON)
+G_DEFINE_TYPE_WITH_CODE (RetrospriteeditorToolButton, retrospriteeditor_tool_button, GTK_TYPE_TOGGLE_BUTTON, 
+		G_ADD_PRIVATE(RetrospriteeditorToolButton))
 
 static void
 retrospriteeditor_tool_button_class_init (RetrospriteeditorToolButtonClass *klass)
@@ -40,23 +42,19 @@ retrospriteeditor_tool_button_class_init (RetrospriteeditorToolButtonClass *klas
 static void
 retrospriteeditor_tool_button_init (RetrospriteeditorToolButton *self)
 {
-  RetrospriteeditorToolButtonClass *klass = G_TYPE_INSTANCE_GET_CLASS (self, RETROSPRITEEDITOR_TYPE_TOOL_BUTTON, RetrospriteeditorToolButtonClass);
-  g_type_add_class_private (RETROSPRITEEDITOR_TYPE_TOOL_BUTTON, sizeof (RetrospriteeditorToolButtonPrivate));
-  RetrospriteeditorToolButtonPrivate *priv = G_TYPE_CLASS_GET_PRIVATE (klass, RETROSPRITEEDITOR_TYPE_TOOL_BUTTON, RetrospriteeditorToolButtonPrivate);
+  RetrospriteeditorToolButtonPrivate *priv = retrospriteeditor_tool_button_get_instance_private (self);
   priv->tool_index = 0;
 }
 
 void tool_button_set_index (RetrospriteeditorToolButton *self,
                             guint32                      index)
 {
-  RetrospriteeditorToolButtonClass *klass = G_TYPE_INSTANCE_GET_CLASS (self, RETROSPRITEEDITOR_TYPE_TOOL_BUTTON, RetrospriteeditorToolButtonClass);
-  RetrospriteeditorToolButtonPrivate *priv = G_TYPE_CLASS_GET_PRIVATE (klass, RETROSPRITEEDITOR_TYPE_TOOL_BUTTON, RetrospriteeditorToolButtonPrivate);
+  RetrospriteeditorToolButtonPrivate *priv = retrospriteeditor_tool_button_get_instance_private (self);
   priv->tool_index = index;
 }
 
 guint32 tool_button_get_type_index (RetrospriteeditorToolButton *self)
 {
-  RetrospriteeditorToolButtonClass *klass = G_TYPE_INSTANCE_GET_CLASS (self, RETROSPRITEEDITOR_TYPE_TOOL_BUTTON, RetrospriteeditorToolButtonClass);
-  RetrospriteeditorToolButtonPrivate *priv = G_TYPE_CLASS_GET_PRIVATE (klass, RETROSPRITEEDITOR_TYPE_TOOL_BUTTON, RetrospriteeditorToolButtonPrivate);
+  RetrospriteeditorToolButtonPrivate *priv = retrospriteeditor_tool_button_get_instance_private (self);
   return priv->tool_index;
 }

@@ -21,6 +21,8 @@
 #include "config.h"
 
 #include "retrospriteeditor-nes-current-palette.h"
+#include "retrospriteeditor-nes-item-palette.h"
+#include "retrospriteeditor-nes-list-palettes.h"
 #include "retrospriteeditor-canvas.h"
 
 struct _RetrospriteeditorNesCurrentPalette
@@ -62,8 +64,15 @@ show_hex (GtkCheckButton *btn,
 {
   RetrospriteeditorNesCurrentPalette *self = RETROSPRITEEDITOR_NES_CURRENT_PALETTE (user_data);
 
-  canvas_set_show_hex (RETROSPRITEEDITOR_CANVAS (self->palette),
-                       gtk_check_button_get_active (GTK_CHECK_BUTTON (self->check_hex)));
+	int show = gtk_check_button_get_active (GTK_CHECK_BUTTON (self->check_hex));
+
+  canvas_set_show_hex (RETROSPRITEEDITOR_CANVAS (self->palette), show);
+
+	GtkWidget **item = nes_list_palette_get_items ();
+
+	for (guint32 i = 0; i < 4; i++) {
+		item_nes_palette_show_hex (RETROSPRITEEDITOR_NES_ITEM_PALETTE (item[i]), show);
+	}
 
   gtk_widget_queue_draw (GTK_WIDGET (self->palette));
 }

@@ -93,6 +93,13 @@ void nes_item_set_id (RetrospriteeditorNesItemPalette *self,
 	canvas_set_item_id (RETROSPRITEEDITOR_CANVAS (self->canvas), item_id);
 }
 
+void item_nes_palette_show_hex (RetrospriteeditorNesItemPalette *self, int show)
+{
+	canvas_set_show_hex (RETROSPRITEEDITOR_CANVAS (self->canvas), show);
+
+	gtk_widget_queue_draw (GTK_WIDGET (self->canvas));
+}
+
 void item_nes_palette_set_colours (RetrospriteeditorNesItemPalette *self,
                                guint32                         *colour,
                                guint32                          count)

@@ -229,17 +229,23 @@ global_set_cur_bank (guint32 index)
 	cur_bank = index;
 }
 
+guint32
+global_get_cur_bank ()
+{
+	return cur_bank;
+}
+
 static void
 inner_nes_set_colour_index_for_palette (int item_id, int index_id, int index_colour)
 {
-	NesBanks *bank = palette_nes_get_bank (cur_bank);
+	NesBanks *bank = palette_nes_get_bank ();
 	bank->bank[cur_bank][item_id][index_id] = index_colour;
 }
 
 static void
 inner_colour_save_to_banks (void)
 {
-	NesBanks *bank = palette_nes_get_bank (cur_bank);
+	NesBanks *bank = palette_nes_get_bank ();
 
 	GtkWidget **items = nes_list_palette_get_items ();
   for (guint i = 0; i < 4; i++) {

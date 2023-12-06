@@ -2,24 +2,32 @@
 #include "retrospriteeditor-nes-list-palettes.h"
 #include "retrospriteeditor-nes-item-palette.h"
 #include "retrospriteeditor-nes-palette.h"
+#include "type-palette.h"
 #include <libxml/xmlwriter.h>
 #include <libxml/xmlreader.h>
 #include <stdio.h>
 #include <string.h>
+
+#define  COUNT_PALETTES               2
+#define  COUNT_COLOURS                4
+typedef struct _NesConfig {
+	int nes_p0 [COUNT_PALETTES] [COUNT_COLOURS];
+	int nes_p1 [COUNT_PALETTES] [COUNT_COLOURS];
+	int nes_p2 [COUNT_PALETTES] [COUNT_COLOURS];
+	int nes_p3 [COUNT_PALETTES] [COUNT_COLOURS];
+	int nes_np0;
+	int nes_np1;
+	int nes_np2;
+	int nes_np3;
+	int nes_pal;
+} NesConfig;
 
 struct Project {
 	char *folder_path;
 	char *name;
 	char *fullpath_to_project;
 	char *file_to_export;
-	int p0[4];
-	int p1[4];
-	int p2[4];
-	int p3[4];
-	int np0;
-	int np1;
-	int np2;
-	int np3;
+	NesConfig nes;
 };
 
 struct Project *prj;
@@ -81,7 +89,20 @@ write_header (xmlTextWriterPtr *writ)
 	*writ = writer;
 }
 
-static void write_palettes (xmlTextWriterPtr writer);
+static void write_nes_palettes (xmlTextWriterPtr writer);
+
+void 
+project_set_open_folder_and_name (const char *folder, const char *name)
+{
+	if (prj) {
+		project_free_and_alloc ();
+	} else {
+		project_alloc ();
+	}
+
+	prj->folder_path = g_strdup (folder);
+	memset (&prj->nes, 0, sizeof (NesConfig));
+}
 
 void 
 project_set_folder_and_name (const char *folder, const char *name)
@@ -96,10 +117,11 @@ project_set_folder_and_name (const char *folder, const char *name)
 	prj->name = g_strdup (name);
 	prj->fullpath_to_project = g_strdup_printf ("%s/%s.rse", folder, name);
 	prj->file_to_export = g_strdup_printf ("%s/%s.chr", folder, name);
+	memset (&prj->nes, 0, sizeof (NesConfig));
 
 	xmlTextWriterPtr writer;
 	write_header (&writer);
-	//write_palettes (writer);
+	write_nes_palettes (writer);
 	xmlTextWriterEndElement (writer);
 	xmlTextWriterEndDocument (writer);
 	xmlFreeTextWriter (writer);
@@ -143,28 +165,39 @@ check_and_write (xmlChar *name, char *sname, xmlChar *value, void **v, int type)
 }
 
 static void
-handle_name_value (xmlChar *name, xmlChar *value)
+handle_nes_name_value (xmlChar *name, xmlChar *value)
 {
 	check_and_write (name, "project_name", value, (void **) &prj->name, TYPE_STRING);
 	check_and_write (name, "project_folder", value, (void **) &prj->folder_path, TYPE_STRING);
 	check_and_write (name, "fullpath", value, (void **) &prj->fullpath_to_project, TYPE_STRING);
 	check_and_write (name, "outfile", value, (void **) &prj->file_to_export, TYPE_STRING);
 	if (!strncmp (name, "p00", 4)) {
-		prj->p0[prj->np0++] = atoi (value);
+		unsigned int val = atoi (value);
+		prj->nes.nes_p0[prj->nes.nes_pal][prj->nes.nes_np0++] = val;
 	}
 	if (!strncmp (name, "p01", 4)) {
-		prj->p1[prj->np1++] = atoi (value);
+		unsigned int val = atoi (value);
+		prj->nes.nes_p1[prj->nes.nes_pal][prj->nes.nes_np1++] = val;
 	}
 	if (!strncmp (name, "p02", 4)) {
-		prj->p2[prj->np2++] = atoi (value);
+		unsigned int val = atoi (value);
+		prj->nes.nes_p2[prj->nes.nes_pal][prj->nes.nes_np2++] = val;
 	}
 	if (!strncmp (name, "p03", 4)) {
-		prj->p3[prj->np3++] = atoi (value);
+		unsigned int val = atoi (value);
+		prj->nes.nes_p3[prj->nes.nes_pal][prj->nes.nes_np3++] = val;
+	}
+	if (prj->nes.nes_np3 == 4) {
+		prj->nes.nes_pal++;
+		prj->nes.nes_np0 = 0;
+		prj->nes.nes_np1 = 0;
+		prj->nes.nes_np2 = 0;
+		prj->nes.nes_np3 = 0;
 	}
 }
 
 static void
-process_node (xmlTextReaderPtr reader)
+process_nes_node (xmlTextReaderPtr reader)
 {
 	const xmlChar *name, *value;
 	name = xmlTextReaderConstName (reader);
@@ -174,7 +207,7 @@ process_node (xmlTextReaderPtr reader)
 		pname = name;
 	} else if (!strncmp (name, "#text", 6)) {
 		//g_print ("%s == %s\n", pname, value);
-		handle_name_value (pname, value);
+		handle_nes_name_value (pname, value);
 	}
 }
 
@@ -265,7 +298,7 @@ parse_and_set_project_header (char *filepath)
 	char *n = strstr (name, ".rse");
 	if (n)
 		*n = 0;
-	project_set_folder_and_name (folder, name);
+	project_set_open_folder_and_name (folder, name);
 }
 
 void
@@ -277,19 +310,29 @@ project_open_nes (char *filepath)
 	reader = xmlNewTextReaderFilename (filepath);
 	int ret = xmlTextReaderRead (reader);
 	while (ret == 1) {
-		process_node (reader);
+		process_nes_node (reader);
 		ret = xmlTextReaderRead (reader);
 	}
 
 	xmlFreeTextReader (reader);
+	NesBanks *bank = palette_nes_get_bank ();
+	for (guint32 pl = 0; pl < 2; pl++) {
+		for (guint32 i = 0; i < 4; i++) {
+			bank->bank[pl][i][0] = prj->nes.nes_p0[pl][i];
+			bank->bank[pl][i][1] = prj->nes.nes_p1[pl][i];
+			bank->bank[pl][i][2] = prj->nes.nes_p2[pl][i];
+			bank->bank[pl][i][3] = prj->nes.nes_p3[pl][i];
+		}
+	}
 
 	GtkWidget **items = nes_list_palette_get_items ();
 	for (guint32 i = 0; i < 4; i++) {
 		guint32 *color_index = item_nes_palette_get_colour_index (RETROSPRITEEDITOR_NES_ITEM_PALETTE (items[i]));
-		*(color_index + 0) = prj->p0[i];
-		*(color_index + 1) = prj->p1[i];
-		*(color_index + 2) = prj->p2[i];
-		*(color_index + 3) = prj->p3[i];
+		guint32 cur_bank = global_get_cur_bank ();
+		*(color_index + 0) = prj->nes.nes_p0[cur_bank][i];
+		*(color_index + 1) = prj->nes.nes_p1[cur_bank][i];
+		*(color_index + 2) = prj->nes.nes_p2[cur_bank][i];
+		*(color_index + 3) = prj->nes.nes_p3[cur_bank][i];
 		item_nes_palette_get_color_from_index (RETROSPRITEEDITOR_NES_ITEM_PALETTE (items[i]));
 	}
 
@@ -297,21 +340,31 @@ project_open_nes (char *filepath)
 }
 
 static void
-write_palettes (xmlTextWriterPtr writer)
+write_nes_palettes (xmlTextWriterPtr writer)
 {
 	GtkWidget **items = nes_list_palette_get_items ();
 	xmlTextWriterStartElement (writer, "Palettes");
-	for (guint32 i = 0; i < 4; i++) {
-		guint32 *color_index = item_nes_palette_get_colour_index (RETROSPRITEEDITOR_NES_ITEM_PALETTE (items[i]));
-		char id[15];
-		snprintf (id, 15, "Palette%02d", i);
-		xmlTextWriterStartElement (writer, id);
-		for (guint32 m = 0; m < 4; m++) {
-			char index_num[15];
-			char num[15];
-			snprintf (index_num, 15, "%d", *(color_index + m));
-			snprintf (num, 15, "p%02d", m);
-			xmlTextWriterWriteElement (writer, num, index_num);
+	const char *palettes[] = {
+		"Sprites",
+		"Background"
+	};
+	unsigned int size_pl = sizeof (palettes) / sizeof (void *);
+
+	for (guint32 pl = 0; pl < size_pl; pl++) {
+		xmlTextWriterStartElement (writer, palettes[pl]);
+		for (guint32 i = 0; i < 4; i++) {
+			NesBanks *bank = palette_nes_get_bank ();
+			char id[15];
+			snprintf (id, 15, "Palette%02d", i);
+			xmlTextWriterStartElement (writer, id);
+			for (guint32 m = 0; m < 4; m++) {
+				char index_num[15];
+				char num[15];
+				snprintf (index_num, 15, "%d", bank->bank[pl][i][m]);
+				snprintf (num, 15, "p%02d", m);
+				xmlTextWriterWriteElement (writer, num, index_num);
+			}
+			xmlTextWriterEndElement (writer);
 		}
 		xmlTextWriterEndElement (writer);
 	}
@@ -323,7 +376,7 @@ project_save_palettes ()
 {
 	xmlTextWriterPtr writer;
 	write_header (&writer);
-	write_palettes (writer);
+	write_nes_palettes (writer);
 	xmlTextWriterEndElement (writer);
 	xmlTextWriterEndDocument (writer);
 	xmlFreeTextWriter (writer);

@@ -95,7 +95,7 @@ connect_widgets (RetrospriteeditorWindow *self)
 		switch (global_type_palette_get_cur_platform ()) {
 			case PLATFORM_PALETTE_NES:
 				self->last_platform = PLATFORM_PALETTE_NES;
-				gtk_box_append (GTK_BOX (self->vert_layout), self->general_layout_nes);
+				gtk_widget_set_visible (self->general_layout_nes, TRUE);
 				break;
 		}
 		return;
@@ -253,6 +253,9 @@ create_nes_widgets (RetrospriteeditorWindow *self)
 
   g_signal_connect (self->tool_button_pencil, "toggled", G_CALLBACK (tool_toggled),
                     self);
+
+	gtk_box_append (GTK_BOX (self->vert_layout), self->general_layout_nes);
+	gtk_widget_set_visible (GTK_WIDGET (self->general_layout_nes), FALSE);
 }
 
 static void

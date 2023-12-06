@@ -81,7 +81,7 @@ palette_setup (
 }
 
 NesBanks*
-palette_nes_get_bank (guint32 index)
+palette_nes_get_bank (void)
 {
 	return &global->banks;
 }

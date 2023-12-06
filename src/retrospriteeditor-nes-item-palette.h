@@ -47,3 +47,4 @@ GtkWidget *item_nes_palette_get_radio (RetrospriteeditorNesItemPalette *self);
 guint32 *item_nes_palette_get_colour (RetrospriteeditorNesItemPalette *self);
 guint32 *item_nes_palette_get_colour_index (RetrospriteeditorNesItemPalette *self);
 void item_nes_palette_get_color_from_index (RetrospriteeditorNesItemPalette *self);
+void item_nes_palette_show_hex (RetrospriteeditorNesItemPalette *self, int show);

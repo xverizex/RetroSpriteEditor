@@ -33,7 +33,7 @@ G_END_DECLS
 typedef struct _NesBanks {
 	guint32 bank[2][4][4];
 } NesBanks;
-NesBanks *palette_nes_get_bank (guint32 index);
+NesBanks *palette_nes_get_bank (void);
 void palette_nes_set_bank (guint32 index);
 void palette_nes_redraw (void);
 GtkWidget **nes_list_palette_get_items (void);
