@@ -69,6 +69,7 @@ void canvas_shut_on_events (RetrospriteeditorCanvas *self);
 
 RetrospriteeditorCanvas * canvas_get_drawing_canvas (void);
 RetrospriteeditorCanvas * canvas_get_tileset (void);
+void drawing_canvas_redraw (void);
 
 void canvas_set_drawing_canvas (RetrospriteeditorCanvas *);
 void canvas_set_tileset (RetrospriteeditorCanvas *);
@@ -95,6 +96,13 @@ void
 canvas_set_colours (RetrospriteeditorCanvas *self,
                     guint32                 *colours,
                     guint32                  count);
+
+void
+canvas_set_item_id (RetrospriteeditorCanvas *self,
+										guint32 								id);
+
+guint32
+canvas_get_item_id (RetrospriteeditorCanvas *self);
 
 void
 canvas_set_show_hex (RetrospriteeditorCanvas *self,

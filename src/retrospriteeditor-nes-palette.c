@@ -66,6 +66,12 @@ static RetrospriteeditorNesPalette *global_nes;
 #define DEFAULT_COLOUR_CANVAS_SCALE               1
 #define DEFAULT_COLOUR_PALETTE_TYPE               0
 
+void
+nes_redraw ()
+{
+	gtk_widget_queue_draw (GTK_WIDGET (global_nes->tileset));
+}
+
 static void
 retrospriteeditor_nes_palette_class_init (RetrospriteeditorNesPaletteClass *klass)
 {
@@ -92,6 +98,7 @@ bank_memory_activate0 (GtkCheckButton *btn,
 
   g_object_set (self->tileset, "settings", &sets, NULL);
 
+
   self->cur_palette = NES_SPRITE;
 
   guint32 width = sets.canvas_width * sets.scale +
@@ -116,7 +123,8 @@ bank_memory_activate0 (GtkCheckButton *btn,
 
   }
 
-
+	global_set_cur_bank (NES_SPRITE);
+	palette_nes_set_bank (NES_SPRITE);
 }
 
 static void
@@ -161,6 +169,9 @@ bank_memory_activate1 (GtkCheckButton *btn,
     sets.left_top      = FALSE;
     g_object_set (cnvs, "settings", &sets, NULL);
   }
+
+	global_set_cur_bank (NES_BACKGROUND);
+	palette_nes_set_bank (NES_BACKGROUND);
 }
 
 static void
@@ -293,8 +304,7 @@ retrospriteeditor_nes_palette_init (RetrospriteeditorNesPalette *self)
   gtk_frame_set_child (GTK_FRAME (self->frame_tileset), self->tileset);
 
   self->frame_banks = gtk_frame_new ("Banks");
-
-
+	global_set_cur_bank (NES_SPRITE);
 
   CanvasSettings cs_front;
   cs_front.type_canvas   = TYPE_CANVAS_TILESET;
@@ -339,6 +349,13 @@ retrospriteeditor_nes_palette_init (RetrospriteeditorNesPalette *self)
   cs_palette.left_top       = TRUE;
   g_object_set (self->colours, "settings", &cs_palette, NULL);
 
+  guint32 *pcolours = global_type_palette_get_cur_ptr_palette (0);
+  canvas_set_colours (RETROSPRITEEDITOR_CANVAS (self->colours), pcolours, 64);
+  guint32 *index_color = g_malloc0 (sizeof (guint32) * 64);
+  for (int col = 0; col < 64; col++) {
+    index_color[col] = col;
+  }
+  canvas_set_index_colours (RETROSPRITEEDITOR_CANVAS (self->colours), index_color);
 
 
   gtk_widget_set_size_request (self->tileset, 256, 256);

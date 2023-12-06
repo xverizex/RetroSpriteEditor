@@ -1,6 +1,8 @@
 #include "type-palette.h"
 #include "retrospriteeditor-nes-palette.h"
 #include "retrospriteeditor-canvas.h"
+#include "retrospriteeditor-nes-list-palettes.h"
+#include "retrospriteeditor-nes-item-palette.h"
 
 static guint32 cur_platform;
 static guint32 cur_palette;
@@ -215,6 +217,58 @@ global_get_data_for_output (DataForOutput *st)
 	{
 		case PLATFORM_PALETTE_NES:
 			form_data_nes (st);
+			break;
+	}
+}
+
+static guint32 cur_bank;
+
+void
+global_set_cur_bank (guint32 index)
+{
+	cur_bank = index;
+}
+
+static void
+inner_nes_set_colour_index_for_palette (int item_id, int index_id, int index_colour)
+{
+	NesBanks *bank = palette_nes_get_bank (cur_bank);
+	bank->bank[cur_bank][item_id][index_id] = index_colour;
+}
+
+static void
+inner_colour_save_to_banks (void)
+{
+	NesBanks *bank = palette_nes_get_bank (cur_bank);
+
+	GtkWidget **items = nes_list_palette_get_items ();
+  for (guint i = 0; i < 4; i++) {
+    guint32 *indx = item_nes_palette_get_index_colours (RETROSPRITEEDITOR_NES_ITEM_PALETTE (items[i]));
+    bank->bank[cur_bank][i][0] = *(indx + 0);
+    bank->bank[cur_bank][i][1] = *(indx + 1);
+    bank->bank[cur_bank][i][2] = *(indx + 2);
+    bank->bank[cur_bank][i][3] = *(indx + 3);
+  }
+}
+
+void
+global_colour_save_to_banks (void)
+{
+	switch (cur_platform)
+	{
+		case PLATFORM_PALETTE_NES:
+			inner_colour_save_to_banks ();
+			break;
+	}
+}
+
+void
+global_set_colour_index_for_palette (int item_id, int index_id, int index_colour)
+{
+	switch (cur_platform)
+	{
+		case PLATFORM_PALETTE_NES:
+			inner_nes_set_colour_index_for_palette (item_id, index_id, index_colour);
 			break;
 	}
 }

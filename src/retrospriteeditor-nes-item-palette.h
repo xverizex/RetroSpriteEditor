@@ -30,6 +30,9 @@ G_DECLARE_FINAL_TYPE (RetrospriteeditorNesItemPalette, retrospriteeditor_nes_ite
 
 G_END_DECLS
 
+void nes_item_set_id (RetrospriteeditorNesItemPalette *self,
+		guint32 item_id);
+
 void item_nes_palette_redraw (RetrospriteeditorNesItemPalette *self);
 guint32 *item_nes_palette_get_index_colours (RetrospriteeditorNesItemPalette *self);
 

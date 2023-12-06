@@ -34,6 +34,7 @@ struct _RetrospriteeditorCanvas
 {
   GtkDrawingArea  parent_instance;
 
+	guint32 item_id;
   guint32 width;
   guint32 height;
   guint32 orig_width;
@@ -91,6 +92,9 @@ enum {
   PROP_SETTINGS = 1,
   N_PROPERTIES
 };
+
+static RetrospriteeditorCanvas *global_drawing_canvas;
+static RetrospriteeditorCanvas *global_drawing_canvas_tileset;
 
 static void
 colour_rgb_get_double_color (guint32 color,
@@ -250,7 +254,7 @@ draw_tool (cairo_t                 *cr,
   }
 
   double r, g, b;
-  colour_rgb_get_double_color (self->colours[self->selected_index_color], &r, &g, &b);
+  colour_rgb_get_double_color (self->colours[self->index_color[self->selected_index_color]], &r, &g, &b);
   cairo_set_source_rgb (cr, r, g, b);
 
   switch (self->tool)
@@ -306,7 +310,7 @@ draw_rectangle (cairo_t                 *cr,
   cairo_rectangle (cr, x, y, w, h);
 
   double r, g, b;
-  colour_rgb_get_double_color (self->colours[0], &r, &g, &b);
+  colour_rgb_get_double_color (self->colours[self->index_color[0]], &r, &g, &b);
   cairo_set_source_rgb (cr, r, g, b);
   cairo_fill (cr);
 }
@@ -363,7 +367,7 @@ draw_pixels (cairo_t                 *cr,
       double r, g, b;
       NesTilePoint *p = nes_get_color (nes, x, y);
       if (p->index > 0) {
-        colour_rgb_get_double_color (self->colours[p->index - 1], &r, &g, &b);
+        colour_rgb_get_double_color (self->colours[self->index_color[p->index - 1]], &r, &g, &b);
         cairo_set_source_rgb (cr, r, g, b);
         int psize = c_pow (1, self->scale);
         cairo_rectangle (cr, xx, yy, psize, psize);
@@ -403,8 +407,8 @@ draw_colour_blocks (cairo_t                 *cr,
     for (guint32 x = 0; x < self->count_x; x++) {
 
       double r, g, b;
-      if (self->colours) {
-        colour_rgb_get_double_color (self->colours[indx], &r, &g, &b);
+      if (self->colours && self->index_color) {
+        colour_rgb_get_double_color (self->colours[self->index_color[indx]], &r, &g, &b);
         cairo_set_source_rgb (cr, r, g, b);
 
         cairo_rectangle (cr,
@@ -416,23 +420,25 @@ draw_colour_blocks (cairo_t                 *cr,
         cairo_fill (cr);
 
         if (self->show_hex_index) {
-	  offsetx = x * self->colour_block_size * self->scale;
-	  offsety = y * self->colour_block_size * self->scale;
+	  			offsetx = x * self->colour_block_size * self->scale;
+	  			offsety = y * self->colour_block_size * self->scale;
           int px = offsetx + self->colour_block_size / 2 - 10;
           int py = y + self->colour_block_size - 4;
           cairo_move_to (cr, px, py);
           char hex_index[32] = "\0";
-	  if (self->colours[indx] == 0x0) {
-		  cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
-	  } else {
-		  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
-	  }
+					if (self->index_color) {
+	  				if (self->colours[self->index_color[indx]] == 0x0) {
+						  cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
+					  } else {
+						  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+	  				}
+					}
 
           snprintf (hex_index, 32, "%X", self->index_color[indx]);
           cairo_show_text (cr, hex_index);
         }
 
-	cairo_move_to (cr, x, y);
+				cairo_move_to (cr, x, y);
       }
 
       indx++;
@@ -506,6 +512,12 @@ canvas_set_settings (RetrospriteeditorCanvas *self,
       break;
     }
 
+}
+
+void
+drawing_canvas_redraw ()
+{
+	gtk_widget_queue_draw (GTK_WIDGET (global_drawing_canvas));
 }
 
 static void
@@ -747,13 +759,25 @@ void
 canvas_set_colours_by_index (RetrospriteeditorCanvas * self, guint32 index_id, guint32 index_color)
 {
   guint32 *pcolours = global_type_palette_get_cur_ptr_palette (0);
-	self->colours[index_id] = pcolours[index_color];	
 }
 
 void
 canvas_set_index_id (RetrospriteeditorCanvas *self, guint32 index)
 {
 	self->index_id = index;
+}
+
+void
+canvas_set_item_id (RetrospriteeditorCanvas *self,
+										guint32 								id)
+{
+	self->item_id = id;
+}
+
+guint32
+canvas_get_item_id (RetrospriteeditorCanvas *self)
+{
+	return self->item_id;
 }
 
 static void
@@ -779,7 +803,7 @@ select_index_color_for_palette (GtkGestureClick *evt,
 					found = 1;
 			  	self->selected_index_color = index_color;
 					canvas_set_index_colours_by_index (RETROSPRITEEDITOR_CANVAS (self->child_one_color), self->index_id, index_color);
-					canvas_set_colours_by_index (RETROSPRITEEDITOR_CANVAS (self->child_one_color), self->index_id, self->selected_index_color);
+					global_colour_save_to_banks ();
 					gtk_widget_queue_draw (GTK_WIDGET (self->child_one_color));
 					palette_nes_redraw ();
 					nes_current_palette_redraw ();
@@ -924,8 +948,6 @@ void canvas_shut_on_events (RetrospriteeditorCanvas *self)
                              GTK_EVENT_CONTROLLER (self->gesture_click_tool_press));
 }
 
-static RetrospriteeditorCanvas *global_drawing_canvas;
-static RetrospriteeditorCanvas *global_drawing_canvas_tileset;
 
 RetrospriteeditorCanvas *canvas_get_tileset (void)
 {

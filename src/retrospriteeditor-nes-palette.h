@@ -37,6 +37,7 @@ NesTilePoint *nes_get_map (guint32 index);
 NesTilePoint *nes_get_block (guint32 w, guint32 h, guint32 x, guint32 y, guint32 index_map);
 
 RetrospriteeditorNesPalette *get_nes (void);
+void nes_redraw (void);
 NesTilePoint *nes_get_color (RetrospriteeditorNesPalette *self,
                        guint32 x, guint32 y);
 

@@ -83,6 +83,14 @@ void item_nes_palette_set_index_colours (RetrospriteeditorNesItemPalette *self,
                                    guint32                         *index)
 {
   self->index_color = index;
+  canvas_set_index_colours (RETROSPRITEEDITOR_CANVAS (self->canvas),
+											index);
+}
+
+void nes_item_set_id (RetrospriteeditorNesItemPalette *self,
+		guint32 item_id)
+{
+	canvas_set_item_id (RETROSPRITEEDITOR_CANVAS (self->canvas), item_id);
 }
 
 void item_nes_palette_set_colours (RetrospriteeditorNesItemPalette *self,
@@ -122,8 +130,10 @@ item_nes_palette_get_colour_index (RetrospriteeditorNesItemPalette *self)
 void item_nes_palette_get_color_from_index (RetrospriteeditorNesItemPalette *self)
 {
 	guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
+#if 0
 	self->colour[0] = colours[self->index_color[0]];
 	self->colour[1] = colours[self->index_color[1]];
 	self->colour[2] = colours[self->index_color[2]];
 	self->colour[3] = colours[self->index_color[3]];
+#endif
 }

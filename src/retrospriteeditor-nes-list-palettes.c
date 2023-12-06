@@ -24,6 +24,7 @@
 #include "retrospriteeditor-nes-item-palette.h"
 #include "retrospriteeditor-nes-current-palette.h"
 #include "retrospriteeditor-setup-palette-nes.h"
+#include "retrospriteeditor-nes-palette.h"
 #include "retrospriteeditor-canvas.h"
 #include "type-palette.h"
 
@@ -35,6 +36,7 @@ struct _RetrospriteeditorNesListPalette
   GtkWidget *box_main;
 	GtkWidget *setup_palette_window;
   GtkWidget *items[4];
+	NesBanks   banks;
 };
 
 static RetrospriteeditorNesListPalette *global;
@@ -61,7 +63,7 @@ select_palette (GtkCheckButton *btn,
 
   RetrospriteeditorNesCurrentPalette *cur_palette = nes_current_get_widget ();
 
-  guint32 *colour = item_nes_palette_get_colour (self);
+  guint32 *colour = global_type_palette_get_cur_ptr_palette (0);
   guint32 *index_color = item_nes_palette_get_index_colours (self);
 
   nes_current_palette (cur_palette, colour, index_color);
@@ -78,6 +80,27 @@ palette_setup (
 	setup_palette_nes_draw (RETROSPRITEEDITOR_SETUP_PALETTE_NES (self->setup_palette_window));
 }
 
+NesBanks*
+palette_nes_get_bank (guint32 index)
+{
+	return &global->banks;
+}
+
+void
+palette_nes_set_bank (guint32 index)
+{
+	for (guint i = 0; i < 4; i++) {
+		guint32 *indx = item_nes_palette_get_index_colours (RETROSPRITEEDITOR_NES_ITEM_PALETTE (global->items[i]));
+		*(indx + 0) = global->banks.bank[index][i][0];
+		*(indx + 1) = global->banks.bank[index][i][1];
+		*(indx + 2) = global->banks.bank[index][i][2];
+		*(indx + 3) = global->banks.bank[index][i][3];
+	}
+	palette_nes_redraw ();
+	nes_current_palette_redraw ();
+	nes_redraw ();
+	drawing_canvas_redraw ();
+}
 
 void
 palette_nes_redraw ()
@@ -115,10 +138,10 @@ retrospriteeditor_nes_list_palette_init (RetrospriteeditorNesListPalette *self)
                                       NULL);
 
 			self->items[i] = item;
+			nes_item_set_id (RETROSPRITEEDITOR_NES_ITEM_PALETTE (item), i);
 
       radiobuttons[i] = item_nes_palette_get_radio (RETROSPRITEEDITOR_NES_ITEM_PALETTE (item));
       items[i] = item;
-      i++;
 
       gtk_grid_attach (GTK_GRID (self->list_palette),
                        item,
@@ -127,23 +150,28 @@ retrospriteeditor_nes_list_palette_init (RetrospriteeditorNesListPalette *self)
                        1,
                        1);
 
-      guint32 *pcolours = global_type_palette_get_cur_ptr_palette (index);
-      guint32 *colours = g_malloc0 (sizeof (guint32) * 4);
+      guint32 *pcolours = global_type_palette_get_cur_ptr_palette (0);
       guint32 *index_colours = g_malloc0 (sizeof (guint32) * 4);
-      *(colours + 0) = pcolours[0];
-      *(colours + 1) = pcolours[1];
-      *(colours + 2) = pcolours[2];
-      *(colours + 3) = pcolours[3];
       *(index_colours + 0) = index + 0;
       *(index_colours + 1) = index + 1;
       *(index_colours + 2) = index + 2;
       *(index_colours + 3) = index + 3;
+
+			for (guint32 in = 0; in < 2; in++) {
+				self->banks.bank[in][i][0] = index + 0;
+				self->banks.bank[in][i][1] = index + 1;
+				self->banks.bank[in][i][2] = index + 2;
+				self->banks.bank[in][i][3] = index + 3;
+			}
+
+      i++;
+
       item_nes_palette_set_index_colours (RETROSPRITEEDITOR_NES_ITEM_PALETTE (item), index_colours);
-      item_nes_palette_set_colours (RETROSPRITEEDITOR_NES_ITEM_PALETTE (item), colours, 4);
+      item_nes_palette_set_colours (RETROSPRITEEDITOR_NES_ITEM_PALETTE (item), pcolours, 4);
 			for (; nindx < nmax; nindx++) {
 				RetrospriteeditorCanvas *c = setup_palette_window_get_palette (RETROSPRITEEDITOR_SETUP_PALETTE_NES (self->setup_palette_window), nindx);
 				canvas_set_index_colours (RETROSPRITEEDITOR_CANVAS (c), (index_colours + nindx % 4));
-				canvas_set_colours (RETROSPRITEEDITOR_CANVAS (c), (colours + nindx % 4), 1);
+				canvas_set_colours (RETROSPRITEEDITOR_CANVAS (c), pcolours, 1);
 			}
 			nmax += 4;
       index += 16;

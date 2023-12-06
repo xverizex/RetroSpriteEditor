@@ -71,6 +71,14 @@ retrospriteeditor_setup_palette_nes_init (RetrospriteeditorSetupPaletteNes *self
     	global_type_palette_get_cur_palette (),
     	64);
 
+		guint32 *pcolours = global_type_palette_get_cur_ptr_palette (0);
+		canvas_set_colours (RETROSPRITEEDITOR_CANVAS (self->pal[i]), pcolours, 64);
+		guint32 *index_color = g_malloc0 (sizeof (guint32) * 64);
+		for (int col = 0; col < 64; col++) {
+			index_color[col] = col;
+		}
+		canvas_set_index_colours (RETROSPRITEEDITOR_CANVAS (self->pal[i]), index_color);
+
 		self->col[i] = g_object_new (RETROSPRITEEDITOR_TYPE_CANVAS,
 				NULL);
 
