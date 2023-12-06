@@ -291,7 +291,7 @@ retrospriteeditor_nes_palette_init (RetrospriteeditorNesPalette *self)
 
 
   self->frame_current_palette = g_object_new (RETROSPRITEEDITOR_TYPE_NES_CURRENT_PALETTE,
-                                            "label", "Current Palette",
+                                            "label", "Select Colour",
                                             NULL);
 
   self->frame_list_items_palette = g_object_new (RETROSPRITEEDITOR_TYPE_NES_LIST_PALETTE,
