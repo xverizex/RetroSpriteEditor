@@ -811,7 +811,7 @@ select_index_color_for_palette (GtkGestureClick *evt,
 					retro_canvas_set_index_colours_by_index (RETRO_CANVAS (self->child_one_color), self->index_id, index_color);
 					global_colour_save_to_banks ();
 					gtk_widget_queue_draw (GTK_WIDGET (self->child_one_color));
-					nes_palette_redraw ();
+					nes_list_palette_redraw ();
 					nes_current_palette_redraw ();
 		  		break;
 				}
