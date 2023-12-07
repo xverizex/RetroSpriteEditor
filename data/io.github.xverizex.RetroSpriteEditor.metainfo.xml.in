@@ -3,7 +3,7 @@
 	<id>io.github.xverizex.RetroSpriteEditor</id>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
-	<content_rating type="oars-1.1"></content_rating>
+	<content_rating type="oars-1.1"/>
 	<name>Retro Sprite Editor</name>
 	<developer_name>Dmitrii Naidolinskii</developer_name>
 	<summary>The pixel editor for retro consoles.</summary>
@@ -22,6 +22,7 @@
 			<description>
 				<p>The first version with NES support to draw.</p>
 			</description>
+		</release>
 	</releases>
 	<update_contact>horisontdawn@yandex.ru</update_contact>
 	<url type="homepage">https://github.com/xverizex/RetroSpriteEditor</url>
