@@ -18,7 +18,6 @@ add_project_arguments(['-I' + meson.project_build_root()], language: 'c')
 project_c_args = []
 test_c_args = [
   '-Wcast-align',
-  '-Wdeclaration-after-statement',
   '-Werror=address',
   '-Werror=array-bounds',
   '-Werror=empty-body',
@@ -57,6 +56,7 @@ test_c_args = [
   '-Wno-cast-function-type',
   '-Wno-dangling-pointer',
   '-Wno-missing-field-initializers',
+  '-Wno-pointer-sign',
   '-Wno-sign-compare',
   '-Wno-unused-parameter',
   '-Wold-style-definition',

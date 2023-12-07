@@ -1,8 +1,8 @@
 #include "project.h"
-#include "retrospriteeditor-nes-list-palettes.h"
-#include "retrospriteeditor-nes-item-palette.h"
-#include "retrospriteeditor-nes-palette.h"
-#include "type-palette.h"
+#include "nes-list-palettes.h"
+#include "nes-item-palette.h"
+#include "nes-palette.h"
+#include "global-functions.h"
 #include <libxml/xmlwriter.h>
 #include <libxml/xmlreader.h>
 #include <stdio.h>
@@ -136,7 +136,7 @@ project_get_filepath_to_export ()
 	return prj->file_to_export;
 }
 
-static xmlChar *pname;
+static const xmlChar *pname;
 
 enum {
 	TYPE_INT,
@@ -145,7 +145,7 @@ enum {
 };
 
 static void
-check_and_write (xmlChar *name, char *sname, xmlChar *value, void **v, int type)
+check_and_write (const xmlChar *name, char *sname, const xmlChar *value, void **v, int type)
 {
 	char *v0 = NULL;
 	int  v1 = 0;
@@ -165,7 +165,7 @@ check_and_write (xmlChar *name, char *sname, xmlChar *value, void **v, int type)
 }
 
 static void
-handle_nes_name_value (xmlChar *name, xmlChar *value)
+handle_nes_name_value (const xmlChar *name, const xmlChar *value)
 {
 	check_and_write (name, "project_name", value, (void **) &prj->name, TYPE_STRING);
 	check_and_write (name, "project_folder", value, (void **) &prj->folder_path, TYPE_STRING);
@@ -220,7 +220,7 @@ read_tilemap_and_set_nes (void)
 			NULL);
 
 	unsigned char *data = g_malloc0 (8192);
-	gsize r = g_input_stream_read (G_INPUT_STREAM (input),
+	g_input_stream_read (G_INPUT_STREAM (input),
 			data,
 			8192,
 			NULL,
@@ -233,12 +233,9 @@ read_tilemap_and_set_nes (void)
 	int yy = 0;
 	int xx = 0;
 	unsigned char *t = data;
-	int zx = 0;
-	int mm = 0;
 	for (int i = 0; i < 2; i++) {
 		blkx = 0;
 		blky = 0;
-		NesTilePoint *p = nes_get_map (i);
 		for (int tile = 0; tile < 256; tile++) {
 			int index = 0;
 
@@ -269,8 +266,8 @@ read_tilemap_and_set_nes (void)
     			n.blocky = blky;
     			n.x = xx;
     			n.y = yy;
-    			RetrospriteeditorNesPalette *nes = get_nes ();
-    			nes_set_color_with_map (nes, &n, index + 1, i);
+    			NesPalette *nes = nes_palette_get ();
+    			nes_palette_set_color_with_map (nes, &n, index + 1, i);
 					}
 				}
 			}
@@ -315,7 +312,7 @@ project_open_nes (char *filepath)
 	}
 
 	xmlFreeTextReader (reader);
-	NesBanks *bank = palette_nes_get_bank ();
+	NesBanks *bank = nes_list_palette_get_bank ();
 	for (guint32 pl = 0; pl < 2; pl++) {
 		for (guint32 i = 0; i < 4; i++) {
 			bank->bank[pl][i][0] = prj->nes.nes_p0[pl][i];
@@ -327,13 +324,13 @@ project_open_nes (char *filepath)
 
 	GtkWidget **items = nes_list_palette_get_items ();
 	for (guint32 i = 0; i < 4; i++) {
-		guint32 *color_index = item_nes_palette_get_colour_index (RETROSPRITEEDITOR_NES_ITEM_PALETTE (items[i]));
+		guint32 *color_index = nes_item_palette_get_colour_index (NES_ITEM_PALETTE (items[i]));
 		guint32 cur_bank = global_get_cur_bank ();
 		*(color_index + 0) = prj->nes.nes_p0[cur_bank][i];
 		*(color_index + 1) = prj->nes.nes_p1[cur_bank][i];
 		*(color_index + 2) = prj->nes.nes_p2[cur_bank][i];
 		*(color_index + 3) = prj->nes.nes_p3[cur_bank][i];
-		item_nes_palette_get_color_from_index (RETROSPRITEEDITOR_NES_ITEM_PALETTE (items[i]));
+		nes_item_palette_get_color_from_index (NES_ITEM_PALETTE (items[i]));
 	}
 
 	read_tilemap_and_set_nes ();
@@ -342,7 +339,8 @@ project_open_nes (char *filepath)
 static void
 write_nes_palettes (xmlTextWriterPtr writer)
 {
-	GtkWidget **items = nes_list_palette_get_items ();
+	//GtkWidget **items = nes_list_palette_get_items ();
+
 	xmlTextWriterStartElement (writer, "Palettes");
 	const char *palettes[] = {
 		"Sprites",
@@ -353,7 +351,7 @@ write_nes_palettes (xmlTextWriterPtr writer)
 	for (guint32 pl = 0; pl < size_pl; pl++) {
 		xmlTextWriterStartElement (writer, palettes[pl]);
 		for (guint32 i = 0; i < 4; i++) {
-			NesBanks *bank = palette_nes_get_bank ();
+			NesBanks *bank = nes_list_palette_get_bank ();
 			char id[15];
 			snprintf (id, 15, "Palette%02d", i);
 			xmlTextWriterStartElement (writer, id);
@@ -372,7 +370,7 @@ write_nes_palettes (xmlTextWriterPtr writer)
 }
 
 void
-project_save_palettes ()
+project_save_palettes (void)
 {
 	xmlTextWriterPtr writer;
 	write_header (&writer);

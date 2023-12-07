@@ -22,20 +22,20 @@
 
 #include <glib/gi18n.h>
 
-#include "retrospriteeditor-application.h"
+#include "retro-app.h"
 
 int
 main (int   argc,
       char *argv[])
 {
-	g_autoptr(RetrospriteeditorApplication) app = NULL;
+	g_autoptr(RetroApp) app = NULL;
 	int ret;
 
 	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 	textdomain (GETTEXT_PACKAGE);
 
-	app = retrospriteeditor_application_new ("io.github.xverizex.RetroSpriteEditor", G_APPLICATION_DEFAULT_FLAGS);
+	app = retro_app_new ("io.github.xverizex.RetroSpriteEditor", G_APPLICATION_DEFAULT_FLAGS);
 	ret = g_application_run (G_APPLICATION (app), argc, argv);
 
 	return ret;
