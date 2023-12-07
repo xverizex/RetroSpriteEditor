@@ -9,17 +9,17 @@
 	<description>
 	  <p>A drawing tool for retro consoles.</p>
 
-		<h3>Available platforms</h3>
+		<p>Available platforms</p>
 		<ul>
 			<li>NES</li>
 		</ul>
-		<h3>Features</h3>
+		<p>Features</p>
 		<ul>
 			<il>saving to NES format</il>
 			<il>pencil for pixel art</il>
 			<il>completely free software</il>
 		</ul>
-		<h3>NES</h3>
+		<p>NES</p>
 		<ul>
 			<li>4 palettes to choose from, which can be customized.</li>
 			<li>two memory banks for spries and backgrounds.</li>
