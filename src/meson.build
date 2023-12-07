@@ -20,7 +20,6 @@ retrospriteeditor_sources = [
 retrospriteeditor_deps = [
   dependency('gtk4'),
   dependency('libadwaita-1', version: '>= 1.4'),
-  dependency('libxml2'),
 ]
 
 xml_deps = declare_dependency (
