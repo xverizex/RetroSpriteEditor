@@ -23,12 +23,16 @@ retrospriteeditor_deps = [
   dependency('libxml2'),
 ]
 
+xml_deps = declare_dependency (
+  link_args : ['-L' + '/usr/lib/', '-l' + 'xml2'],
+  include_directories : include_directories ('/usr/include/libxml2'))
+
 retrospriteeditor_sources += gnome.compile_resources('retrospriteeditor-resources',
   'retrospriteeditor.gresource.xml',
   c_name: 'retrospriteeditor'
 )
 
 executable('retrospriteeditor', retrospriteeditor_sources,
-  dependencies: retrospriteeditor_deps,
+  dependencies: [retrospriteeditor_deps, xml_deps],
        install: true,
 )
