@@ -225,7 +225,7 @@ main_window_create_nes_widgets (MainWindow *self)
 
   self->icon_theme = gtk_icon_theme_get_for_display (gdk_display_get_default ());
   gtk_icon_theme_add_resource_path (self->icon_theme,
-                                     "/io/github/xverizex/RetroSpriteMain/icons");
+                                     "/io/github/xverizex/RetroSpriteEditor/icons");
 
   gtk_widget_set_hexpand (self->scroll_window_canvas, TRUE);
   gtk_widget_set_vexpand (self->scroll_window_canvas, TRUE);
