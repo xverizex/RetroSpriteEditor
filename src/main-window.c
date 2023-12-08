@@ -251,11 +251,21 @@ main_window_create_nes_widgets (MainWindow *self)
 
   retro_canvas_shut_on_events (RETRO_CANVAS (self->canvas));
 
+#ifdef __MINGW32__
+  self->tool_button_pencil = g_object_new (TOOL_TYPE_PENCIL,
+                                        "has-frame", FALSE,
+                                        NULL);
 
+	GtkWidget *image = gtk_image_new_from_file ("image-tools/pencil.png");
+	gtk_button_set_child (GTK_BUTTON (self->tool_button_pencil), image);
+	gtk_widget_set_valign (image, GTK_ALIGN_CENTER);
+
+#else
   self->tool_button_pencil = g_object_new (TOOL_TYPE_PENCIL,
                                         "icon-name", "pencil",
                                         "has-frame", FALSE,
                                         NULL);
+#endif
 
 
   gtk_box_append (GTK_BOX (self->box_tools), self->tool_button_pencil);
