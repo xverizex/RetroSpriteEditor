@@ -190,14 +190,14 @@ nes_background_init (NesTilePoint *p)
 			p[i].blocky = blky;
 			p[i].index  = 0;
 			ax++;
-			if (ax >= 16) {
+			if (ax >= 8) {
 				ax = 0;
 				blkx++;
 			}
 		}
 		blkx = 0;
 		ay++;
-		if (ay >= 16) {
+		if (ay >= 8) {
 			ay = 0;
 			blky++;
 		}
@@ -263,7 +263,7 @@ nes_palette_get_block (guint32 w, guint32 h, guint32 blkx, guint32 blky, guint32
 }
 
 static void
-nes_init_map (NesTilePoint *p, guint32 type)
+nes_palette_init_map (NesTilePoint *p, guint32 type)
 {
 	switch (type)
 	{
@@ -406,8 +406,8 @@ nes_palette_init (NesPalette *self)
 
   gtk_box_append (GTK_BOX (self), self->frame_list_items_palette);
 
-	nes_init_map (self->map[NES_SPRITE], NES_SPRITE);
-	nes_init_map (self->map[NES_BACKGROUND], NES_BACKGROUND);
+	nes_palette_init_map (self->map[NES_SPRITE], NES_SPRITE);
+	nes_palette_init_map (self->map[NES_BACKGROUND], NES_BACKGROUND);
 
 
   gtk_box_append (GTK_BOX (self), self->frame_current_palette);
@@ -417,6 +417,14 @@ NesPalette *
 nes_palette_get (void)
 {
   return global_nes;
+}
+
+void
+nes_palette_clean_map (void)
+{
+	nes_palette_init_map (global_nes->map[NES_SPRITE], NES_SPRITE);
+	nes_palette_init_map (global_nes->map[NES_BACKGROUND], NES_BACKGROUND);
+	retro_canvas_redraw_drawing_and_tileset ();
 }
 
 NesTilePoint *

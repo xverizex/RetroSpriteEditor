@@ -59,3 +59,6 @@ nes_palette_set_color_with_map (NesPalette *self,
                     NesParamPoint               *params,
                     guint32                      index,
 										guint32                      map);
+
+void
+nes_palette_clean_map (void);

@@ -28,6 +28,7 @@
 #include "general-tools.h"
 #include "project.h"
 #include "global-functions.h"
+#include "nes-palette.h"
 #include <libxml/parser.h>
 
 #define DEFAULT_CANVAS_WIDTH             128
@@ -142,6 +143,7 @@ async_selected_project (GObject *source_object,
 	char *c_project = g_strdup (g_file_get_path (project));
 
 	main_window_connect_widgets (self);
+	nes_palette_clean_map ();
 	project_open_nes (c_project);
 }
 

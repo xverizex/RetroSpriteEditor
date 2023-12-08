@@ -95,6 +95,13 @@ enum {
 static RetroCanvas *global_drawing_canvas;
 static RetroCanvas *global_drawing_canvas_tileset;
 
+void
+retro_canvas_redraw_drawing_and_tileset (void)
+{
+	gtk_widget_queue_draw (GTK_WIDGET (global_drawing_canvas));
+	gtk_widget_queue_draw (GTK_WIDGET (global_drawing_canvas_tileset));
+}
+
 static void
 colour_rgb_get_double_color (guint32 color,
                              gdouble *r,

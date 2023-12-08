@@ -260,14 +260,17 @@ read_tilemap_and_set_nes (void)
 					yy = y;
 					xx = 7 - x;
 
-					if (found > 0) {
 					NesParamPoint n;
-			    n.blockx = blkx;
-    			n.blocky = blky;
-    			n.x = xx;
-    			n.y = yy;
-    			NesPalette *nes = nes_palette_get ();
-    			nes_palette_set_color_with_map (nes, &n, index + 1, i);
+		    	n.blockx = blkx;
+   				n.blocky = blky;
+   				n.x = xx;
+   				n.y = yy;
+   				NesPalette *nes = nes_palette_get ();
+
+					if (found > 0) {
+    				nes_palette_set_color_with_map (nes, &n, index + 1, i);
+					} else {
+    				nes_palette_set_color_with_map (nes, &n, 0, i);
 					}
 				}
 			}
