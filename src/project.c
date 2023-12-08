@@ -291,7 +291,14 @@ parse_and_set_project_header (char *filepath)
 	if (name) {
 		*name = 0;
 		name++;
+	} else {
+		name = strrchr (folder, '\\');
+		if (name) {
+			*name = 0;
+			name++;
+		}
 	}
+
 	char *n = strstr (name, ".rse");
 	if (n)
 		*n = 0;
