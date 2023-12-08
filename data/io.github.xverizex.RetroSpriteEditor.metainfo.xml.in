@@ -8,7 +8,7 @@
 	<developer_name>Dmitrii Naidolinskii</developer_name>
 	<summary>The pixel editor for retro consoles.</summary>
 	<description>
-	  <p>A drawing tool for retro consoles.</p>
+	  <p>The drawing tool for retro consoles.</p>
 
 		<p>Available platforms</p>
 	</description>
@@ -18,6 +18,11 @@
 		</screenshot>
 	</screenshots>
 	<releases>
+		<release date="2023-12-8" version="0.1.30">
+			<description>
+				<p>Fix little bugs.</p>
+			</description>
+		</release>
 		<release date="2023-12-7" version="0.1.22">
 			<description>
 				<p>The first version with NES support to draw.</p>
