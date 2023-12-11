@@ -25,6 +25,7 @@
 #include "nes-list-palettes.h"
 #include "global-functions.h"
 #include "nes-current-palette.h"
+#include "nes-screen-background.h"
 
 struct _NesPalette
 {
@@ -40,6 +41,7 @@ struct _NesPalette
   GtkWidget *frame_banks;
   GtkWidget *frame_list_items_palette;
   GtkWidget *frame_current_palette;
+	GtkWidget *window_screen;
 
   guint32 cur_palette;
   guint32 count_sprite_x;
@@ -48,8 +50,6 @@ struct _NesPalette
   guint32 count_back_y;
   guint32 cur_width_rect;
   guint32 cur_heigh_rect;
-
-  NesTilePoint *map[N_NES];
 };
 
 G_DEFINE_FINAL_TYPE (NesPalette, nes_palette, GTK_TYPE_BOX)
@@ -174,65 +174,6 @@ bank_memory_activate1 (GtkCheckButton *btn,
 	nes_list_palette_set_bank (NES_BACKGROUND);
 }
 
-static void
-nes_background_init (NesTilePoint *p)
-{
-	guint32 i = 0;
-	guint32 blkx = 0;
-	guint32 blky = 0;
-	guint32 ax = 0;
-	guint32 ay = 0;
-	for (guint32 y = 0; y < 128; y++) {
-		for (guint32 x = 0; x < 128; x++) {
-			p[i].x = x;
-			p[i].y = y;
-			p[i].blockx = blkx;
-			p[i].blocky = blky;
-			p[i].index  = 0;
-			ax++;
-			if (ax >= 8) {
-				ax = 0;
-				blkx++;
-			}
-		}
-		blkx = 0;
-		ay++;
-		if (ay >= 8) {
-			ay = 0;
-			blky++;
-		}
-	}
-}
-
-static void
-nes_sprite_init (NesTilePoint *p)
-{
-	guint32 i = 0;
-	guint32 blkx = 0;
-	guint32 blky = 0;
-	guint32 ax = 0;
-	guint32 ay = 0;
-	for (guint32 y = 0; y < 128; y++) {
-		for (guint32 x = 0; x < 128; x++) {
-			p[i].x = x;
-			p[i].y = y;
-			p[i].blockx = blkx;
-			p[i].blocky = blky;
-			p[i].index  = 0;
-			ax++;
-			if (ax >= 8) {
-				ax = 0;
-				blkx++;
-			}
-		}
-		blkx = 0;
-		ay++;
-		if (ay >= 8) {
-			ay = 0;
-			blky++;
-		}
-	}
-}
 
 #define                  NES_CANVAS_SIZE        128
 
@@ -241,7 +182,7 @@ nes_palette_get_block (guint32 w, guint32 h, guint32 blkx, guint32 blky, guint32
 {
 	NesTilePoint *p = g_malloc0 (sizeof (NesTilePoint) * w * h);
 
-	NesTilePoint *z = global_nes->map[index_map];
+	NesTilePoint *z = global_nes_get_map(index_map);
 
 	guint32 indx = 0;
 	gint ndx = 0;
@@ -260,22 +201,6 @@ nes_palette_get_block (guint32 w, guint32 h, guint32 blkx, guint32 blky, guint32
 	}
 
 	return p;
-}
-
-static void
-nes_palette_init_map (NesTilePoint *p, guint32 type)
-{
-	switch (type)
-	{
-		case NES_SPRITE:
-			nes_sprite_init (p);
-			break;
-		case NES_BACKGROUND:
-			nes_background_init (p);
-			break;
-		default:
-			break;
-	}
 }
 
 static void
@@ -307,6 +232,9 @@ nes_palette_init (NesPalette *self)
 
   self->frame_banks = gtk_frame_new ("Banks");
 	global_set_cur_bank (NES_SPRITE);
+
+	self->window_screen = g_object_new (NES_TYPE_SCREEN_BACKGROUND, NULL);
+	gtk_window_present (GTK_WINDOW (self->window_screen));
 
   CanvasSettings cs_front;
   cs_front.type_canvas   = TYPE_CANVAS_TILESET;
@@ -351,8 +279,7 @@ nes_palette_init (NesPalette *self)
   cs_palette.left_top       = TRUE;
   g_object_set (self->colours, "settings", &cs_palette, NULL);
 
-  guint32 *pcolours = global_type_palette_get_cur_ptr_palette (0);
-  retro_canvas_set_colours (RETRO_CANVAS (self->colours), pcolours, 64);
+  retro_canvas_set_colours (RETRO_CANVAS (self->colours), 64);
   guint32 *index_color = g_malloc0 (sizeof (guint32) * 64);
   for (int col = 0; col < 64; col++) {
     index_color[col] = col;
@@ -393,22 +320,14 @@ nes_palette_init (NesPalette *self)
 
   gtk_check_button_set_active (GTK_CHECK_BUTTON (self->bank0), TRUE);
 
-  global_type_palette_set_cur (PLATFORM_PALETTE_NES, NES_TYPE_PALETTE_2C02);
-
   retro_canvas_set_type_palette (
     RETRO_CANVAS (self->colours),
     NES_TYPE_PALETTE_2C02,
     64);
 
   guint32 t = 128 * 128;
-  self->map[NES_SPRITE] = g_malloc0 (sizeof (NesTilePoint) * t);
-  self->map[NES_BACKGROUND] = g_malloc0 (sizeof (NesTilePoint) * t);
 
   gtk_box_append (GTK_BOX (self), self->frame_list_items_palette);
-
-	nes_palette_init_map (self->map[NES_SPRITE], NES_SPRITE);
-	nes_palette_init_map (self->map[NES_BACKGROUND], NES_BACKGROUND);
-
 
   gtk_box_append (GTK_BOX (self), self->frame_current_palette);
 }
@@ -422,8 +341,8 @@ nes_palette_get (void)
 void
 nes_palette_clean_map (void)
 {
-	nes_palette_init_map (global_nes->map[NES_SPRITE], NES_SPRITE);
-	nes_palette_init_map (global_nes->map[NES_BACKGROUND], NES_BACKGROUND);
+	//nes_palette_init_map (global_nes->map[NES_SPRITE], NES_SPRITE);
+	//nes_palette_init_map (global_nes->map[NES_BACKGROUND], NES_BACKGROUND);
 	retro_canvas_redraw_drawing_and_tileset ();
 }
 
@@ -431,15 +350,9 @@ NesTilePoint *
 nes_palette_get_color (NesPalette *self,
                        guint32 x, guint32 y)
 {
-  NesTilePoint *point = &self->map[self->cur_palette][y * 128 + x];
+  NesTilePoint *point = &(((NesTilePoint *) global_nes_get_map(self->cur_palette))[y * 128 + x]);
 
   return point;
-}
-
-NesTilePoint *
-nes_palette_get_map (guint32 index)
-{
-	return global_nes->map[index];
 }
 
 void 
@@ -451,7 +364,7 @@ nes_palette_set_color_with_map (NesPalette *self,
   guint32 x = params->blockx * self->cur_width_rect + params->x;
   guint32 y = params->blocky * self->cur_heigh_rect + params->y;
 
-  NesTilePoint *point = &self->map[map][y * 128 + x];
+  NesTilePoint *point = &(((NesTilePoint *) global_nes_get_map(map))[y * 128 + x]);
 
   point->blockx = params->blockx;
   point->blocky = params->blocky;
@@ -471,7 +384,7 @@ nes_palette_set_color (NesPalette *self,
   guint32 x = params->blockx * self->cur_width_rect + params->x;
   guint32 y = params->blocky * self->cur_heigh_rect + params->y;
 
-  NesTilePoint *point = &self->map[cur_palette][y * 128 + x];
+  NesTilePoint *point = &(((NesTilePoint *) global_nes_get_map(cur_palette))[y * 128 + x]);
 
   point->blockx = params->blockx;
   point->blocky = params->blocky;

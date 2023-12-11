@@ -201,6 +201,16 @@ action_save_project (GSimpleAction *simple,
 void
 main_window_create_nes_widgets (MainWindow *self)
 {
+
+	global_type_palette_set_cur (PLATFORM_PALETTE_NES, NES_TYPE_PALETTE_2C02);
+	for (int i = 0; i < 4; i++) {
+		global_nes_palette_alloc_memory_index (i, sizeof (guint32) * 4);
+	}
+
+	global_nes_palette_alloc_maps ();
+	global_nes_palette_init_map (0);
+	global_nes_palette_init_map (1);
+
   self->canvas = g_object_new(RETRO_TYPE_CANVAS, NULL);
   retro_canvas_set_drawing_canvas (RETRO_CANVAS (self->canvas));
 
@@ -244,7 +254,7 @@ main_window_create_nes_widgets (MainWindow *self)
   cs.type_canvas    = TYPE_CANVAS_TILESET;
   cs.canvas_width   = DEFAULT_CANVAS_WIDTH;
   cs.canvas_height  = DEFAULT_CANVAS_HEIGHT;
-  cs.palette_type   = DEFAULT_PALETTE_TYPE;
+  cs.palette_type   = global_type_palette_get_cur_platform ();
   cs.scale          = DEFAULT_CANVAS_SCALE;
   cs.width_rect    = 8;
   cs.height_rect   = 8;

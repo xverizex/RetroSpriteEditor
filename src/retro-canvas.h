@@ -90,7 +90,7 @@ retro_canvas_set_child_color (RetroCanvas *self, RetroCanvas *child);
 void
 retro_canvas_set_index_colours (RetroCanvas *self, guint32 *index_color);
 void
-retro_canvas_set_colours (RetroCanvas *self, guint32 *colours, guint32 count);
+retro_canvas_set_colours (RetroCanvas *self, guint32 count);
 
 void
 retro_canvas_set_item_id (RetroCanvas *self, guint32 id);

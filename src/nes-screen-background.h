@@ -1,4 +1,4 @@
-/* nes-item-palette.h
+/* nes-screen-background.h
  *
  * Copyright 2023 vi
  *
@@ -24,35 +24,8 @@
 
 G_BEGIN_DECLS
 
-#define NES_TYPE_ITEM_PALETTE (nes_item_palette_get_type())
+#define NES_TYPE_SCREEN_BACKGROUND (nes_screen_background_get_type())
 
-G_DECLARE_FINAL_TYPE (NesItemPalette, nes_item_palette, NES, ITEM_PALETTE, GtkBox)
+G_DECLARE_FINAL_TYPE (NesScreenBackground, nes_screen_background, NES, SCREEN_BACKGROUND, GtkWindow)
 
 G_END_DECLS
-
-void 
-nes_item_set_id (NesItemPalette *self, guint32 item_id);
-
-void 
-nes_item_palette_redraw (NesItemPalette *self);
-
-guint32 *
-nes_item_palette_get_index_colours (NesItemPalette *self);
-
-void 
-nes_item_palette_set_index_colours (NesItemPalette *self, guint32 *index);
-
-void 
-nes_item_palette_set_colours (NesItemPalette *self, guint32 count);
-
-GtkWidget *
-nes_item_palette_get_radio (NesItemPalette *self);
-
-guint32 *
-nes_item_palette_get_colour_index (NesItemPalette *self);
-
-void 
-nes_item_palette_get_color_from_index (NesItemPalette *self);
-
-void 
-nes_item_palette_show_hex (NesItemPalette *self, int show);

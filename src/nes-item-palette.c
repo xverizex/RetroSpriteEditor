@@ -105,15 +105,9 @@ nes_item_palette_show_hex (NesItemPalette *self, int show)
 }
 
 void 
-nes_item_palette_set_colours (NesItemPalette *self,
-                               guint32                         *colour,
-                               guint32                          count)
+nes_item_palette_set_colours (NesItemPalette *self, guint32 count)
 {
-  self->colour = colour;
-
-  retro_canvas_set_colours (RETRO_CANVAS (self->canvas),
-                      colour,
-                      count);
+  retro_canvas_set_colours (RETRO_CANVAS (self->canvas), count);
 }
 
 void 
@@ -126,12 +120,6 @@ GtkWidget *
 nes_item_palette_get_radio (NesItemPalette *self)
 {
   return self->radio_btn;
-}
-
-guint32 *
-nes_item_palette_get_colour (NesItemPalette *self)
-{
-  return self->colour;
 }
 
 guint32 *

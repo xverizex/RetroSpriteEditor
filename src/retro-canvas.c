@@ -318,24 +318,25 @@ draw_rectangle (cairo_t                 *cr,
   cairo_rectangle (cr, x, y, w, h);
 
   double r, g, b;
-  colour_rgb_get_double_color (self->colours[self->index_color[0]], &r, &g, &b);
+	guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
+	g_print ("colours: %p\n", colours);
+	g_print ("index color: %p\n", self->index_color);
+	g_print ("index color value [0]: %d\n", self->index_color[0]);
+
+  colour_rgb_get_double_color (colours[self->index_color[0]], &r, &g, &b);
   cairo_set_source_rgb (cr, r, g, b);
   cairo_fill (cr);
 }
 
 void
-retro_canvas_set_index_colours (RetroCanvas *self,
-                          guint32                 *index_color)
+retro_canvas_set_index_colours (RetroCanvas *self, guint32 *index_color)
 {
   self->index_color = index_color;
 }
 
 void
-retro_canvas_set_colours (RetroCanvas *self,
-                    guint32                 *colours,
-                    guint32                  count)
+retro_canvas_set_colours (RetroCanvas *self, guint32 count)
 {
-  self->colours = colours;
   self->count_colours = count;
 }
 
@@ -372,10 +373,15 @@ draw_pixels (cairo_t                 *cr,
   for (guint32 y = 0; y < self->orig_height; y++) {
     for (guint32 x = 0; x < self->orig_width; x++) {
 
+			guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
       double r, g, b;
       NesTilePoint *p = nes_palette_get_color (nes, x, y);
+			g_print ("pixel index: %d\n", p->index);
       if (p->index > 0) {
-        colour_rgb_get_double_color (self->colours[self->index_color[p->index - 1]], &r, &g, &b);
+				g_print ("colours: %p\n", colours);
+				g_print ("index color: %p\n", self->index_color);
+				g_print ("index color value [0]: %d\n", self->index_color[0]);
+        colour_rgb_get_double_color (colours[self->index_color[p->index - 1]], &r, &g, &b);
         cairo_set_source_rgb (cr, r, g, b);
         int psize = c_pow (1, self->scale);
         cairo_rectangle (cr, xx, yy, psize, psize);
@@ -414,9 +420,14 @@ draw_colour_blocks (cairo_t                 *cr,
   for (guint32 y = 0; y < self->count_y; y++) {
     for (guint32 x = 0; x < self->count_x; x++) {
 
+			guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
+
       double r, g, b;
-      if (self->colours && self->index_color) {
-        colour_rgb_get_double_color (self->colours[self->index_color[indx]], &r, &g, &b);
+      if (colours && self->index_color) {
+				g_print ("colours: %p\n", colours);
+				g_print ("index color: %p\n", self->index_color);
+				g_print ("index color value [0]: %d\n", self->index_color[0]);
+        colour_rgb_get_double_color (colours[self->index_color[indx]], &r, &g, &b);
         cairo_set_source_rgb (cr, r, g, b);
 
         cairo_rectangle (cr,
@@ -435,7 +446,7 @@ draw_colour_blocks (cairo_t                 *cr,
           cairo_move_to (cr, px, py);
           char hex_index[32] = "\0";
 					if (self->index_color) {
-	  				if (self->colours[self->index_color[indx]] == 0x0) {
+	  				if (colours[self->index_color[indx]] == 0x0) {
 						  cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
 					  } else {
 						  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);

@@ -3,6 +3,7 @@
 #include "retro-canvas.h"
 #include "nes-list-palettes.h"
 #include "nes-item-palette.h"
+#include "nes-palette.h"
 
 static guint32 cur_platform;
 static guint32 cur_palette;
@@ -121,6 +122,20 @@ global_get_max_index (void)
     }
 
   return 0;
+}
+
+static guint32 *indexed_colors_palette[4];
+
+void 
+global_nes_palette_alloc_memory_index (guint32 index, gsize size)
+{
+	indexed_colors_palette[index] = g_malloc0 (size);
+}
+
+guint32 *
+global_nes_palette_get_memory_index (guint32 index)
+{
+	return indexed_colors_palette[index];
 }
 
 typedef struct _FormData {
@@ -297,4 +312,95 @@ global_type_palette_get_cur_ptr_palette (guint32 index)
     }
 
   return NULL;
+}
+
+static void
+global_nes_background_init (NesTilePoint *p)
+{
+	guint32 i = 0;
+	guint32 blkx = 0;
+	guint32 blky = 0;
+	guint32 ax = 0;
+	guint32 ay = 0;
+	for (guint32 y = 0; y < 128; y++) {
+		for (guint32 x = 0; x < 128; x++) {
+			p[i].x = x;
+			p[i].y = y;
+			p[i].blockx = blkx;
+			p[i].blocky = blky;
+			p[i].index  = 0;
+			ax++;
+			if (ax >= 8) {
+				ax = 0;
+				blkx++;
+			}
+		}
+		blkx = 0;
+		ay++;
+		if (ay >= 8) {
+			ay = 0;
+			blky++;
+		}
+	}
+}
+
+static void
+global_nes_sprite_init (NesTilePoint *p)
+{
+	guint32 i = 0;
+	guint32 blkx = 0;
+	guint32 blky = 0;
+	guint32 ax = 0;
+	guint32 ay = 0;
+	for (guint32 y = 0; y < 128; y++) {
+		for (guint32 x = 0; x < 128; x++) {
+			p[i].x = x;
+			p[i].y = y;
+			p[i].blockx = blkx;
+			p[i].blocky = blky;
+			p[i].index  = 0;
+			ax++;
+			if (ax >= 8) {
+				ax = 0;
+				blkx++;
+			}
+		}
+		blkx = 0;
+		ay++;
+		if (ay >= 8) {
+			ay = 0;
+			blky++;
+		}
+	}
+}
+
+static NesTilePoint *nes_map[2];
+
+void
+global_nes_palette_alloc_maps (void)
+{
+	nes_map[0] = g_malloc0 (sizeof (NesTilePoint) * 128 * 128);
+	nes_map[1] = g_malloc0 (sizeof (NesTilePoint) * 128 * 128);
+}
+
+void *
+global_nes_get_map (guint32 indx)
+{
+	return (NesTilePoint *) nes_map[indx];
+}
+
+void
+global_nes_palette_init_map (guint32 type)
+{
+	switch (type)
+	{
+		case NES_SPRITE:
+			global_nes_sprite_init (nes_map[type]);
+			break;
+		case NES_BACKGROUND:
+			global_nes_background_init (nes_map[type]);
+			break;
+		default:
+			break;
+	}
 }

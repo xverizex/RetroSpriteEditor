@@ -26,3 +26,8 @@ void global_set_colour_index_for_palette (int item_id, int index_id, int index_c
 void global_set_cur_bank (guint32 index);
 guint32 global_get_cur_bank (void);
 void global_colour_save_to_banks (void);
+void global_nes_palette_alloc_memory_index (guint32 index, gsize size);
+guint32 *global_nes_palette_get_memory_index (guint32 index);
+void global_nes_palette_init_map (guint32 index);
+void global_nes_palette_alloc_maps (void);
+void *global_nes_get_map (guint32 indx);

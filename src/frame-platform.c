@@ -22,6 +22,7 @@
 
 #include "frame-platform.h"
 #include "nes-palette.h"
+#include "nes-screen-background.h"
 
 struct _FramePlatform
 {

@@ -133,17 +133,17 @@ nes_current_palette (NesCurrentPalette *self,
   self->colours = colours;
   self->index_colour =index_colour;
 
-  retro_canvas_set_colours (RETRO_CANVAS (self->palette), colours, 4);
+  retro_canvas_set_colours (RETRO_CANVAS (self->palette), 4);
   retro_canvas_set_index_colours (RETRO_CANVAS (self->palette), index_colour);
 
   RetroCanvas *dr_canvas = retro_canvas_get_drawing_canvas ();
 
-  retro_canvas_set_colours (RETRO_CANVAS (dr_canvas), colours, 4);
+  retro_canvas_set_colours (RETRO_CANVAS (dr_canvas), 4);
   retro_canvas_set_index_colours (RETRO_CANVAS (dr_canvas), index_colour);
 
   RetroCanvas *tileset = retro_canvas_get_tileset ();
 
-  retro_canvas_set_colours (RETRO_CANVAS (tileset), colours, 4);
+  retro_canvas_set_colours (RETRO_CANVAS (tileset), 4);
   retro_canvas_set_index_colours (RETRO_CANVAS (tileset), index_colour);
 
   gtk_widget_queue_draw (self->palette);

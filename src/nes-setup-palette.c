@@ -71,8 +71,7 @@ nes_setup_palette_init (NesSetupPalette *self)
     	global_type_palette_get_cur_palette (),
     	64);
 
-		guint32 *pcolours = global_type_palette_get_cur_ptr_palette (0);
-		retro_canvas_set_colours (RETRO_CANVAS (self->pal[i]), pcolours, 64);
+		retro_canvas_set_colours (RETRO_CANVAS (self->pal[i]), 64);
 		guint32 *index_color = g_malloc0 (sizeof (guint32) * 64);
 		for (int col = 0; col < 64; col++) {
 			index_color[col] = col;

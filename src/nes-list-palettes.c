@@ -152,7 +152,7 @@ nes_list_palette_init (NesListPalette *self)
                        1);
 
       guint32 *pcolours = global_type_palette_get_cur_ptr_palette (0);
-      guint32 *index_colours = g_malloc0 (sizeof (guint32) * 4);
+      guint32 *index_colours = global_nes_palette_get_memory_index (i);
       *(index_colours + 0) = index + 0;
       *(index_colours + 1) = index + 1;
       *(index_colours + 2) = index + 2;
@@ -168,11 +168,11 @@ nes_list_palette_init (NesListPalette *self)
       i++;
 
       nes_item_palette_set_index_colours (NES_ITEM_PALETTE (item), index_colours);
-      nes_item_palette_set_colours (NES_ITEM_PALETTE (item), pcolours, 4);
+      nes_item_palette_set_colours (NES_ITEM_PALETTE (item), 4);
 			for (; nindx < nmax; nindx++) {
 				RetroCanvas *c = nes_setup_palette_get_palette (NES_SETUP_PALETTE (self->setup_palette_window), nindx);
 				retro_canvas_set_index_colours (RETRO_CANVAS (c), (index_colours + nindx % 4));
-				retro_canvas_set_colours (RETRO_CANVAS (c), pcolours, 1);
+				retro_canvas_set_colours (RETRO_CANVAS (c), 1);
 			}
 			nmax += 4;
       index += 16;
