@@ -315,6 +315,36 @@ global_type_palette_get_cur_ptr_palette (guint32 index)
 }
 
 static void
+global_nes_screen_init (NesTilePoint *p)
+{
+	guint32 i = 0;
+	guint32 blkx = 0;
+	guint32 blky = 0;
+	guint32 ax = 0;
+	guint32 ay = 0;
+	for (guint32 y = 0; y < 240; y++) {
+		for (guint32 x = 0; x < 256; x++) {
+			p[i].x = x;
+			p[i].y = y;
+			p[i].blockx = blkx;
+			p[i].blocky = blky;
+			p[i].index  = 0;
+			ax++;
+			if (ax >= 8) {
+				ax = 0;
+				blkx++;
+			}
+		}
+		blkx = 0;
+		ay++;
+		if (ay >= 8) {
+			ay = 0;
+			blky++;
+		}
+	}
+}
+
+static void
 global_nes_background_init (NesTilePoint *p)
 {
 	guint32 i = 0;
@@ -375,18 +405,27 @@ global_nes_sprite_init (NesTilePoint *p)
 }
 
 static NesTilePoint *nes_map[2];
+static NesTilePoint *nes_screen_map[1];
 
 void
 global_nes_palette_alloc_maps (void)
 {
 	nes_map[0] = g_malloc0 (sizeof (NesTilePoint) * 128 * 128);
 	nes_map[1] = g_malloc0 (sizeof (NesTilePoint) * 128 * 128);
+	nes_screen_map[0] = g_malloc0 (sizeof (NesTilePoint) * 256 * 240);
+	global_nes_screen_init (nes_screen_map[0]);
 }
 
 void *
 global_nes_get_map (guint32 indx)
 {
 	return (NesTilePoint *) nes_map[indx];
+}
+
+void *
+global_nes_screen_get_map (guint32 indx)
+{
+	return (NesTilePoint *) nes_screen_map[indx];
 }
 
 void

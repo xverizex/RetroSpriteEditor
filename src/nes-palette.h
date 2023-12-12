@@ -46,6 +46,10 @@ void
 nes_palette_redraw (void);
 
 NesTilePoint *
+nes_palette_screen_get_color (NesPalette *self,
+                       guint32 x, guint32 y);
+
+NesTilePoint *
 nes_palette_get_color (NesPalette *self,
                        guint32 x, guint32 y);
 

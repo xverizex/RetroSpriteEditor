@@ -118,6 +118,99 @@ colour_rgb_get_double_color (guint32 color,
 }
 
 static void
+draw_grid_nes_screen_megatile_palette (cairo_t           *cr,
+           int                      width,
+           int                      height,
+           RetroCanvas *self)
+{
+
+
+  double line_width = 1.0;
+
+  cairo_set_source_rgb (cr, 1.0, 0.0, 0.0);
+  cairo_set_line_width (cr, line_width);
+
+  int x = self->px + 1;
+  int y = self->py + 1;
+
+  if (self->left_top) {
+    x = y = 0;
+  }
+
+  guint32 count_rect_w = self->orig_width / self->width_rect;
+  guint32 count_rect_h = self->orig_height / self->height_rect;
+
+  guint32 rect_w_result_size = c_pow (self->width_rect * 4, self->scale);
+  guint32 rect_h_result_size = c_pow (self->height_rect * 4, self->scale);
+
+
+  int xx = 0;
+  int yy = 0;
+
+
+  for (int cyy = 0; cyy < count_rect_h; cyy++) {
+    for (int cxx = 0; cxx < count_rect_w; cxx++) {
+      cairo_rectangle (cr, x + xx, y + yy,
+                       rect_w_result_size,
+                       rect_h_result_size);
+      xx += rect_w_result_size;
+      xx += 4;
+    }
+    yy += rect_h_result_size;
+    yy += 4;
+    xx = 0;
+  }
+
+  cairo_stroke (cr);
+}
+
+static void
+draw_grid_nes_screen_one_palette (cairo_t           *cr,
+           int                      width,
+           int                      height,
+           RetroCanvas *self)
+{
+
+
+  double line_width = 1.0;
+
+  cairo_set_source_rgb (cr, 1.0, 1.0, 0.0);
+  cairo_set_line_width (cr, line_width);
+
+  int x = self->px + 1;
+  int y = self->py + 1;
+
+  if (self->left_top) {
+    x = y = 0;
+  }
+
+  guint32 count_rect_w = self->orig_width / self->width_rect;
+  guint32 count_rect_h = self->orig_height / self->height_rect;
+
+  guint32 rect_w_result_size = c_pow (self->width_rect * 2, self->scale);
+  guint32 rect_h_result_size = c_pow (self->height_rect * 2, self->scale);
+
+
+  int xx = 0;
+  int yy = 0;
+
+
+  for (int cyy = 0; cyy < count_rect_h; cyy++) {
+    for (int cxx = 0; cxx < count_rect_w; cxx++) {
+      cairo_rectangle (cr, x + xx, y + yy,
+                       rect_w_result_size,
+                       rect_h_result_size);
+      xx += rect_w_result_size;
+      xx += 2;
+    }
+    yy += rect_h_result_size;
+    yy += 2;
+    xx = 0;
+  }
+
+  cairo_stroke (cr);
+}
+static void
 draw_grid (cairo_t                 *cr,
            int                      width,
            int                      height,
@@ -319,9 +412,6 @@ draw_rectangle (cairo_t                 *cr,
 
   double r, g, b;
 	guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
-	g_print ("colours: %p\n", colours);
-	g_print ("index color: %p\n", self->index_color);
-	g_print ("index color value [0]: %d\n", self->index_color[0]);
 
   colour_rgb_get_double_color (colours[self->index_color[0]], &r, &g, &b);
   cairo_set_source_rgb (cr, r, g, b);
@@ -359,6 +449,50 @@ retro_canvas_set_type_palette (RetroCanvas *self,
 }
 
 static void
+draw_screen_background (cairo_t                 *cr,
+                    int                      width,
+                    int                      height,
+                    RetroCanvas *self)
+{
+  int xx = self->px + 1;
+  int yy = self->py + 1;
+
+  int nx = 0;
+  int ny = 0;
+
+  NesPalette *nes = nes_palette_get ();
+	
+  for (guint32 y = 0; y < self->orig_height; y++) {
+    for (guint32 x = 0; x < self->orig_width; x++) {
+
+			guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
+      double r, g, b;
+      NesTilePoint *p = nes_palette_screen_get_color (nes, x, y);
+      if (p->index > 0) {
+        colour_rgb_get_double_color (colours[self->index_color[p->index - 1]], &r, &g, &b);
+        cairo_set_source_rgb (cr, r, g, b);
+        int psize = c_pow (1, self->scale);
+        cairo_rectangle (cr, xx, yy, psize, psize);
+        cairo_fill (cr);
+      }
+      nx++;
+      xx += c_pow (1, self->scale);
+      if (nx == 8) {
+        xx++;
+        nx = 0;
+      }
+    }
+    xx = self->px + 1;
+    nx = 0;
+    ny++;
+    yy += c_pow (1, self->scale);
+    if (ny == 8) {
+      yy++;
+      ny = 0;
+    }
+  }
+}
+static void
 draw_pixels (cairo_t                 *cr,
                     int                      width,
                     int                      height,
@@ -376,11 +510,7 @@ draw_pixels (cairo_t                 *cr,
 			guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
       double r, g, b;
       NesTilePoint *p = nes_palette_get_color (nes, x, y);
-			g_print ("pixel index: %d\n", p->index);
       if (p->index > 0) {
-				g_print ("colours: %p\n", colours);
-				g_print ("index color: %p\n", self->index_color);
-				g_print ("index color value [0]: %d\n", self->index_color[0]);
         colour_rgb_get_double_color (colours[self->index_color[p->index - 1]], &r, &g, &b);
         cairo_set_source_rgb (cr, r, g, b);
         int psize = c_pow (1, self->scale);
@@ -424,9 +554,6 @@ draw_colour_blocks (cairo_t                 *cr,
 
       double r, g, b;
       if (colours && self->index_color) {
-				g_print ("colours: %p\n", colours);
-				g_print ("index color: %p\n", self->index_color);
-				g_print ("index color value [0]: %d\n", self->index_color[0]);
         colour_rgb_get_double_color (colours[self->index_color[indx]], &r, &g, &b);
         cairo_set_source_rgb (cr, r, g, b);
 
@@ -495,6 +622,13 @@ draw_canvas (GtkDrawingArea *area,
     case TYPE_CANVAS_COLOUR_PALETTE:
       draw_colour_blocks (cr, width, height, self);
       break;
+		case TYPE_CANVAS_SCREEN_BACKGROUND:
+      draw_rectangle (cr, width, height, self);
+      draw_grid (cr, width, height, self);
+      draw_grid_nes_screen_one_palette (cr, width, height, self);
+      draw_grid_nes_screen_megatile_palette (cr, width, height, self);
+      draw_screen_background (cr, width, height, self);
+			break;
 		default:
 			break;
     }

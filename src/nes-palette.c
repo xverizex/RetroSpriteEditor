@@ -347,6 +347,15 @@ nes_palette_clean_map (void)
 }
 
 NesTilePoint *
+nes_palette_screen_get_color (NesPalette *self,
+                       guint32 x, guint32 y)
+{
+  NesTilePoint *point = &(((NesTilePoint *) global_nes_screen_get_map(self->cur_palette))[y * 256 + x]);
+
+  return point;
+}
+
+NesTilePoint *
 nes_palette_get_color (NesPalette *self,
                        guint32 x, guint32 y)
 {

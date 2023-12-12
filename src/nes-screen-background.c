@@ -68,8 +68,8 @@ nes_screen_background_init (NesScreenBackground *self)
 	gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll_screen),
 			GTK_WIDGET (self->screen));
 
-	gtk_widget_set_size_request (GTK_WIDGET (self->background), 128, 128);
-	gtk_widget_set_size_request (GTK_WIDGET (self->screen), 128, 128);
+	gtk_widget_set_size_request (GTK_WIDGET (scroll_background), 128, 128);
+	gtk_widget_set_size_request (GTK_WIDGET (scroll_screen), 256, 240);
 
 	CanvasSettings back_cs;
 	back_cs.type_canvas = TYPE_CANVAS_TILESET;
@@ -85,9 +85,9 @@ nes_screen_background_init (NesScreenBackground *self)
 	g_object_set (self->background, "settings", &back_cs, NULL);
 
 	CanvasSettings screen_cs;
-	screen_cs.type_canvas = TYPE_CANVAS_TILESET;
-	screen_cs.canvas_width = 128; // 256
-	screen_cs.canvas_height = 128; // 240
+	screen_cs.type_canvas = TYPE_CANVAS_SCREEN_BACKGROUND;
+	screen_cs.canvas_width = 256;
+	screen_cs.canvas_height = 240;
 	screen_cs.palette_type = global_type_palette_get_cur_platform ();
 	screen_cs.width_rect = 8;
 	screen_cs.height_rect = 8;
