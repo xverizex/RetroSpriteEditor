@@ -15,6 +15,7 @@ retrospriteeditor_sources = [
   'nes-setup-palette.c',
   'nes-new-project.c',
   'nes-screen-background.c',
+  'nes-frame-megatile.c',
   'project.c',
 ]
 

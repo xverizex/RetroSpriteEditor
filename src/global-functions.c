@@ -4,6 +4,7 @@
 #include "nes-list-palettes.h"
 #include "nes-item-palette.h"
 #include "nes-palette.h"
+#include "nes-setup-palette.h"
 
 static guint32 cur_platform;
 static guint32 cur_palette;
@@ -443,3 +444,4 @@ global_nes_palette_init_map (guint32 type)
 			break;
 	}
 }
+

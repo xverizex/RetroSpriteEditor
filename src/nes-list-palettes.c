@@ -126,30 +126,30 @@ nes_list_palette_init (NesListPalette *self)
   self->list_palette = gtk_grid_new ();
 
   GtkWidget *radiobuttons[4] = {0, };
-  GtkWidget *items[4];
 
-  guint32 index = 0;
   guint32 i = 0;
-	guint32 nindx = 0;
-	guint32 nmax = 4;
+	gint nindx = 0;
+	gint nmax = 4;
+	gint index = 0;
+
   for (guint32 y = 0; y < 2; y++) {
     for (guint32 x = 0; x < 2; x++) {
-      GtkWidget *item = g_object_new (NES_TYPE_ITEM_PALETTE,
-                                      "orientation", GTK_ORIENTATION_HORIZONTAL,
-                                      NULL);
 
-			self->items[i] = item;
-			nes_item_set_id (NES_ITEM_PALETTE (item), i);
+      self->items[i] = g_object_new (NES_TYPE_ITEM_PALETTE,
+                               "orientation", GTK_ORIENTATION_HORIZONTAL,
+                               NULL);
 
-      radiobuttons[i] = nes_item_palette_get_radio (NES_ITEM_PALETTE (item));
-      items[i] = item;
+      radiobuttons[i] = nes_item_palette_get_radio (NES_ITEM_PALETTE (self->items[i]));
 
       gtk_grid_attach (GTK_GRID (self->list_palette),
-                       item,
+                       self->items[i],
                        x,
                        y,
                        1,
                        1);
+
+
+			nes_item_set_id (NES_ITEM_PALETTE (self->items[i]), i);
 
       guint32 *pcolours = global_type_palette_get_cur_ptr_palette (0);
       guint32 *index_colours = global_nes_palette_get_memory_index (i);
@@ -165,10 +165,9 @@ nes_list_palette_init (NesListPalette *self)
 				self->banks.bank[in][i][3] = index + 3;
 			}
 
-      i++;
 
-      nes_item_palette_set_index_colours (NES_ITEM_PALETTE (item), index_colours);
-      nes_item_palette_set_colours (NES_ITEM_PALETTE (item), 4);
+      nes_item_palette_set_index_colours (NES_ITEM_PALETTE (self->items[i]), index_colours);
+      nes_item_palette_set_colours (NES_ITEM_PALETTE (self->items[i]), 4);
 			for (; nindx < nmax; nindx++) {
 				RetroCanvas *c = nes_setup_palette_get_palette (NES_SETUP_PALETTE (self->setup_palette_window), nindx);
 				retro_canvas_set_index_colours (RETRO_CANVAS (c), (index_colours + nindx % 4));
@@ -176,8 +175,10 @@ nes_list_palette_init (NesListPalette *self)
 			}
 			nmax += 4;
       index += 16;
-    }
-  }
+
+			i++;
+		}
+	}
 
   self->box_main = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
   gtk_box_append (GTK_BOX (self->box_main) , self->btn_palette_setup);
@@ -192,7 +193,7 @@ nes_list_palette_init (NesListPalette *self)
   for (i = 0; i < 4; i++) {
     g_signal_connect (radiobuttons[i], "toggled",
                       G_CALLBACK (select_palette),
-                      items[i]);
+                      self->items[i]);
   }
 
   gtk_check_button_set_active (GTK_CHECK_BUTTON (radiobuttons[0]), TRUE);

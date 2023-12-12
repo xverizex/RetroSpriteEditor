@@ -21,6 +21,7 @@
 #include "config.h"
 
 #include "nes-screen-background.h"
+#include "nes-frame-megatile.h"
 #include "retro-canvas.h"
 #include "global-functions.h"
 
@@ -31,6 +32,7 @@ struct _NesScreenBackground
 	RetroCanvas *background;
 	RetroCanvas *screen;
 	GtkWidget   *box_main;
+	GtkWidget   *frame_megatile;
 };
 
 G_DEFINE_FINAL_TYPE (NesScreenBackground, nes_screen_background, GTK_TYPE_WINDOW)
@@ -52,7 +54,6 @@ nes_screen_background_init (NesScreenBackground *self)
 			NULL);
 
 	guint32 *idx_colour = global_nes_palette_get_memory_index (0);
-	g_print ("idx_colour: %p\n", idx_colour);
 	retro_canvas_set_index_colours (RETRO_CANVAS (self->background), idx_colour);
 	retro_canvas_set_index_colours (RETRO_CANVAS (self->screen), idx_colour);
 
@@ -100,6 +101,9 @@ nes_screen_background_init (NesScreenBackground *self)
 	self->box_main = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
 	gtk_box_append (GTK_BOX (self->box_main), scroll_background);
 	gtk_box_append (GTK_BOX (self->box_main), scroll_screen);
+
+	self->frame_megatile = g_object_new (NES_TYPE_FRAME_MEGATILE, NULL);
+	gtk_box_append (GTK_BOX (self->box_main), self->frame_megatile);
 
 	gtk_window_set_child (GTK_WINDOW (self), self->box_main);
 

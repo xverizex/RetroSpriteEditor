@@ -32,6 +32,7 @@ struct _NesItemPalette
 
   guint32 *colour;
   guint32 *index_color;
+	GtkExpression *expr;
 };
 
 #define DEFAULT_COLOUR_CANVAS_WIDTH             128
@@ -41,16 +42,70 @@ struct _NesItemPalette
 
 G_DEFINE_FINAL_TYPE (NesItemPalette, nes_item_palette, GTK_TYPE_BOX)
 
+enum {
+	PROP_EXPRESSION = 1,
+	N_PROPERTIES
+};
+
+static GParamSpec *obj_props[N_PROPERTIES] = {NULL, 0};
+
+static void
+set_property (GObject *object,
+		guint property_id,
+		const GValue *value,
+		GParamSpec *spec)
+{
+	NesItemPalette *self = NES_ITEM_PALETTE (object);
+
+	switch (property_id) {
+		case PROP_EXPRESSION:
+			break;
+		default:
+			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, spec);
+	}
+}
+
+static void
+get_property (GObject *object,
+		guint property_id,
+		GValue *value,
+		GParamSpec *spec)
+{
+	NesItemPalette *self = NES_ITEM_PALETTE (object);
+
+	switch (property_id) {
+		case PROP_EXPRESSION:
+			gtk_value_set_expression (value, self->expr);
+			break;
+		default:
+			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, spec);
+	}
+}
+
 static void
 nes_item_palette_class_init (NesItemPaletteClass *klass)
 {
-  //GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+	GObjectClass *g = G_OBJECT_CLASS (klass);
+
+	g->set_property = set_property;
+	g->get_property = get_property;
+
+	obj_props[PROP_EXPRESSION] = 
+		gtk_param_spec_expression ("self",
+				"Self",
+				"Return self object",
+				G_PARAM_READWRITE);
+
+	g_object_class_install_properties (g, N_PROPERTIES, obj_props);
 }
 
 static void
 nes_item_palette_init (NesItemPalette *self)
 {
   self->index_color = NULL;
+
+	self->expr = gtk_constant_expression_new (GTK_TYPE_WIDGET, self);
 
   self->radio_btn = gtk_check_button_new ();
   self->canvas = g_object_new (RETRO_TYPE_CANVAS,

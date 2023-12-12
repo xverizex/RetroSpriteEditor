@@ -233,8 +233,6 @@ nes_palette_init (NesPalette *self)
   self->frame_banks = gtk_frame_new ("Banks");
 	global_set_cur_bank (NES_SPRITE);
 
-	self->window_screen = g_object_new (NES_TYPE_SCREEN_BACKGROUND, NULL);
-	gtk_window_present (GTK_WINDOW (self->window_screen));
 
   CanvasSettings cs_front;
   cs_front.type_canvas   = TYPE_CANVAS_TILESET;
@@ -330,6 +328,9 @@ nes_palette_init (NesPalette *self)
   gtk_box_append (GTK_BOX (self), self->frame_list_items_palette);
 
   gtk_box_append (GTK_BOX (self), self->frame_current_palette);
+
+	self->window_screen = g_object_new (NES_TYPE_SCREEN_BACKGROUND, NULL);
+	gtk_window_present (GTK_WINDOW (self->window_screen));
 }
 
 NesPalette *
@@ -402,4 +403,5 @@ nes_palette_set_color (NesPalette *self,
   point->index = index;
 
   gtk_widget_queue_draw (GTK_WIDGET (self->tileset));
+
 }                                    
