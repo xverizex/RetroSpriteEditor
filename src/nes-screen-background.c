@@ -32,7 +32,8 @@ struct _NesScreenBackground
 	RetroCanvas *background;
 	RetroCanvas *screen;
 	GtkWidget   *box_main;
-	GtkWidget   *frame_megatile;
+	GtkWidget   *frame_megatile[4];
+	GtkWidget   *grid_megatiles;
 };
 
 G_DEFINE_FINAL_TYPE (NesScreenBackground, nes_screen_background, GTK_TYPE_WINDOW)
@@ -52,6 +53,8 @@ nes_screen_background_init (NesScreenBackground *self)
 			NULL);
 	self->screen = g_object_new (RETRO_TYPE_CANVAS,
 			NULL);
+
+	self->grid_megatiles = gtk_grid_new ();
 
 	guint32 *idx_colour = global_nes_palette_get_memory_index (0);
 	retro_canvas_set_index_colours (RETRO_CANVAS (self->background), idx_colour);
@@ -102,8 +105,30 @@ nes_screen_background_init (NesScreenBackground *self)
 	gtk_box_append (GTK_BOX (self->box_main), scroll_background);
 	gtk_box_append (GTK_BOX (self->box_main), scroll_screen);
 
-	self->frame_megatile = g_object_new (NES_TYPE_FRAME_MEGATILE, NULL);
-	gtk_box_append (GTK_BOX (self->box_main), self->frame_megatile);
+	char *labels_frame[] = {
+		"Left Top",
+		"Right Top",
+		"Left Bottom",
+		"Right Bottom"
+	};
+
+	int x = 0;
+	int y = 0;
+	for (int i = 0; i < 4; i++) {
+		self->frame_megatile[i] = g_object_new (NES_TYPE_FRAME_MEGATILE, "label", labels_frame[i], NULL);
+		gtk_grid_attach (GTK_GRID (self->grid_megatiles),
+			self->frame_megatile[i],
+			x,
+			y,
+			1,
+			1);
+		x++;
+		if (x == 2) {
+			x = 0;
+			y++;
+		}
+	}
+	gtk_box_append (GTK_BOX (self->box_main), self->grid_megatiles);
 
 	gtk_window_set_child (GTK_WINDOW (self), self->box_main);
 

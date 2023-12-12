@@ -34,6 +34,7 @@ struct _RetroCanvas
   GtkDrawingArea  parent_instance;
 
 	guint32 item_id;
+	guint32 draw_blank;
   guint32 width;
   guint32 height;
   guint32 orig_width;
@@ -608,7 +609,11 @@ draw_canvas (GtkDrawingArea *area,
 {
   RetroCanvas *self = RETRO_CANVAS (area);
 
-
+	if (self->draw_blank) {
+		cairo_set_source_rgb (cr, 0., 0., 0.);
+		cairo_paint (cr);
+		return;
+	}
 
   switch (self->type_canvas)
     {
@@ -720,6 +725,12 @@ canvas_get_property (GObject    *object,
 		default:
 			break;
     }
+}
+
+void
+retro_canvas_set_blank (RetroCanvas *self, int is_blank)
+{
+	self->draw_blank = is_blank;
 }
 
 static void
@@ -1019,6 +1030,7 @@ mouse_hit_canvas_press (GtkGestureClick *evt,
 static void
 retro_canvas_init (RetroCanvas *self)
 {
+	self->draw_blank = 0;
 	self->child_one_color = NULL;
   self->colours = NULL;
   self->count_colours = 0;
