@@ -87,11 +87,11 @@ nes_screen_background_init (NesScreenBackground *self)
 	CanvasSettings screen_cs;
 	screen_cs.type_canvas = TYPE_CANVAS_SCREEN_BACKGROUND;
 	screen_cs.canvas_width = 256;
-	screen_cs.canvas_height = 240;
+	screen_cs.canvas_height = 224;
 	screen_cs.palette_type = global_type_palette_get_cur_platform ();
 	screen_cs.width_rect = 8;
 	screen_cs.height_rect = 8;
-	screen_cs.scale = 3;
+	screen_cs.scale = 2;
 	screen_cs.count_x = 1;
 	screen_cs.count_y = 1;
 	screen_cs.left_top = FALSE;
@@ -103,6 +103,8 @@ nes_screen_background_init (NesScreenBackground *self)
 
 	gtk_window_set_child (GTK_WINDOW (self), self->box_main);
 
+	retro_canvas_shut_on_events_nes_screen (RETRO_CANVAS (self->background));
+	retro_canvas_shut_on_events_nes_screen (RETRO_CANVAS (self->screen));
 
 	gtk_window_set_default_size (GTK_WINDOW (self), 1280, 720);
 }

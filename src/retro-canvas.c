@@ -137,8 +137,8 @@ draw_grid_nes_screen_megatile_palette (cairo_t           *cr,
     x = y = 0;
   }
 
-  guint32 count_rect_w = self->orig_width / self->width_rect;
-  guint32 count_rect_h = self->orig_height / self->height_rect;
+  guint32 count_rect_w = self->orig_width / (self->width_rect * 4);
+  guint32 count_rect_h = self->orig_height / (self->height_rect * 4);
 
   guint32 rect_w_result_size = c_pow (self->width_rect * 4, self->scale);
   guint32 rect_h_result_size = c_pow (self->height_rect * 4, self->scale);
@@ -151,8 +151,8 @@ draw_grid_nes_screen_megatile_palette (cairo_t           *cr,
   for (int cyy = 0; cyy < count_rect_h; cyy++) {
     for (int cxx = 0; cxx < count_rect_w; cxx++) {
       cairo_rectangle (cr, x + xx, y + yy,
-                       rect_w_result_size,
-                       rect_h_result_size);
+                       rect_w_result_size + 4,
+                       rect_h_result_size + 4);
       xx += rect_w_result_size;
       xx += 4;
     }
@@ -184,8 +184,8 @@ draw_grid_nes_screen_one_palette (cairo_t           *cr,
     x = y = 0;
   }
 
-  guint32 count_rect_w = self->orig_width / self->width_rect;
-  guint32 count_rect_h = self->orig_height / self->height_rect;
+  guint32 count_rect_w = self->orig_width / (self->width_rect * 2);
+  guint32 count_rect_h = self->orig_height / (self->height_rect * 2);
 
   guint32 rect_w_result_size = c_pow (self->width_rect * 2, self->scale);
   guint32 rect_h_result_size = c_pow (self->height_rect * 2, self->scale);
@@ -198,8 +198,8 @@ draw_grid_nes_screen_one_palette (cairo_t           *cr,
   for (int cyy = 0; cyy < count_rect_h; cyy++) {
     for (int cxx = 0; cxx < count_rect_w; cxx++) {
       cairo_rectangle (cr, x + xx, y + yy,
-                       rect_w_result_size,
-                       rect_h_result_size);
+                       rect_w_result_size + 2,
+                       rect_h_result_size + 2);
       xx += rect_w_result_size;
       xx += 2;
     }
@@ -1106,6 +1106,20 @@ retro_canvas_shut_on_events (RetroCanvas *self)
 
   gtk_widget_add_controller (GTK_WIDGET (self),
                              GTK_EVENT_CONTROLLER (self->gesture_click_tool_press));
+}
+
+void 
+retro_canvas_shut_on_events_nes_screen (RetroCanvas *self)
+{
+  gtk_widget_add_controller (GTK_WIDGET (self),
+                             GTK_EVENT_CONTROLLER (self->event_motion));
+
+  gtk_widget_add_controller (GTK_WIDGET (self),
+                             GTK_EVENT_CONTROLLER (self->event_zoom));
+
+  gtk_widget_add_controller (GTK_WIDGET (self),
+                             GTK_EVENT_CONTROLLER (self->gesture_click_move_canvas));
+
 }
 
 
