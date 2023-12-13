@@ -32,6 +32,7 @@ struct _NesFrameMegatile
 
 	GtkWidget *box_main;
 	GtkWidget *canvas;
+	RetroCanvas *cnvs[4];
 	GtkWidget *menu;
 };
 
@@ -41,6 +42,19 @@ static void
 nes_frame_megatile_class_init (NesFrameMegatileClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+}
+
+static void
+canvas_activated_row (GtkListBox *box,
+		GtkListBoxRow *row,
+		gpointer user_data)
+{
+	NesFrameMegatile *self = NES_FRAME_MEGATILE	(user_data);
+	int index = gtk_list_box_row_get_index (GTK_LIST_BOX_ROW (row));
+	guint32 *index_color = global_nes_palette_get_memory_index (index);
+
+	retro_canvas_set_index_colours (RETRO_CANVAS (self->canvas), index_color);
+	gtk_widget_queue_draw (GTK_WIDGET (self->canvas));
 }
 
 static void
@@ -81,8 +95,13 @@ nes_frame_megatile_init (NesFrameMegatile *self)
 		index_color = global_nes_palette_get_memory_index (i);
 		retro_canvas_set_index_colours (RETRO_CANVAS (cnvs), index_color);
 		retro_canvas_set_colours (RETRO_CANVAS (cnvs), 4);
+		retro_canvas_set_item_id (RETRO_CANVAS (cnvs), i);
   	g_object_set (cnvs, "settings", &cs_palette, NULL);
+
+		self->cnvs[i] = cnvs;
 	}
+
+	g_signal_connect (listbox, "row-activated", G_CALLBACK (canvas_activated_row), self);
 
 	GtkWidget *popover = gtk_popover_new ();
 	gtk_popover_set_child (GTK_POPOVER (popover), listbox);
