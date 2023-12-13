@@ -34,6 +34,8 @@ struct _NesScreenBackground
 	GtkWidget   *box_main;
 	GtkWidget   *frame_megatile[4];
 	GtkWidget   *grid_megatiles;
+	GtkWidget   *frame_grid_megatile;
+	GtkWidget   *box_info;
 };
 
 G_DEFINE_FINAL_TYPE (NesScreenBackground, nes_screen_background, GTK_TYPE_WINDOW)
@@ -54,6 +56,7 @@ nes_screen_background_init (NesScreenBackground *self)
 	self->screen = g_object_new (RETRO_TYPE_CANVAS,
 			NULL);
 
+	self->box_info = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
 	self->grid_megatiles = gtk_grid_new ();
 
 	guint32 *idx_colour = global_nes_palette_get_memory_index (0);
@@ -128,7 +131,12 @@ nes_screen_background_init (NesScreenBackground *self)
 			y++;
 		}
 	}
-	gtk_box_append (GTK_BOX (self->box_main), self->grid_megatiles);
+
+	self->frame_grid_megatile = g_object_new (GTK_TYPE_FRAME, "label", "Megatile", NULL);
+	gtk_frame_set_child (GTK_FRAME (self->frame_grid_megatile), self->grid_megatiles);
+
+	gtk_box_append (GTK_BOX (self->box_main), self->box_info);
+	gtk_box_append (GTK_BOX (self->box_info), self->frame_grid_megatile);
 
 	gtk_window_set_child (GTK_WINDOW (self), self->box_main);
 
