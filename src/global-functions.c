@@ -413,7 +413,7 @@ global_nes_palette_alloc_maps (void)
 {
 	nes_map[0] = g_malloc0 (sizeof (NesTilePoint) * 128 * 128);
 	nes_map[1] = g_malloc0 (sizeof (NesTilePoint) * 128 * 128);
-	nes_screen_map[0] = g_malloc0 (sizeof (NesTilePoint) * 256 * 240);
+	nes_screen_map[0] = g_malloc0 (sizeof (NesTilePoint) * 256 * 224);
 	global_nes_screen_init (nes_screen_map[0]);
 }
 

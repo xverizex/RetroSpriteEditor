@@ -36,7 +36,7 @@ tool_copy_tile_class_init (ToolCopyTileClass *klass)
 }
 
 static void
-tool_copy_tile_init (ToolPencil *self)
+tool_copy_tile_init (ToolCopyTile *self)
 {
   ToolButton *parent = TOOL_BUTTON (self);
 

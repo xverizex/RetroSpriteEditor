@@ -121,3 +121,6 @@ retro_canvas_shut_on_events_nes_screen (RetroCanvas *self);
 
 void
 retro_canvas_set_blank (RetroCanvas *self, int is_blank);
+
+void
+retro_canvas_set_copy (RetroCanvas *self, guint32 is_copy);

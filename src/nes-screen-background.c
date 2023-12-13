@@ -24,6 +24,7 @@
 #include "nes-frame-megatile.h"
 #include "retro-canvas.h"
 #include "global-functions.h"
+#include "tool-copy-tile.h"
 
 struct _NesScreenBackground
 {
@@ -36,6 +37,9 @@ struct _NesScreenBackground
 	GtkWidget   *grid_megatiles;
 	GtkWidget   *frame_grid_megatile;
 	GtkWidget   *box_info;
+	GtkWidget   *frame_tools;
+	GtkWidget   *grid_tools;
+	GtkWidget   *tool_copy;
 };
 
 G_DEFINE_FINAL_TYPE (NesScreenBackground, nes_screen_background, GTK_TYPE_WINDOW)
@@ -44,6 +48,20 @@ static void
 nes_screen_background_class_init (NesScreenBackgroundClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+}
+
+static void
+toggled_tool_copy (GtkToggleButton *source, gpointer user_data)
+{
+	NesScreenBackground *self = NES_SCREEN_BACKGROUND (user_data);
+
+	gboolean is = gtk_toggle_button_get_active (source);
+
+	guint32 type_tool = tool_button_get_type_index (TOOL_BUTTON (self->tool_copy));
+
+	if (is) {
+		retro_canvas_set_tool (RETRO_CANVAS (self->background), type_tool);
+	}
 }
 
 static void
@@ -143,5 +161,23 @@ nes_screen_background_init (NesScreenBackground *self)
 	retro_canvas_shut_on_events_nes_screen (RETRO_CANVAS (self->background));
 	retro_canvas_shut_on_events_nes_screen (RETRO_CANVAS (self->screen));
 
+	retro_canvas_set_copy (RETRO_CANVAS (self->background), 1);
+
+
 	gtk_window_set_default_size (GTK_WINDOW (self), 1280, 720);
+
+	self->frame_tools = g_object_new (GTK_TYPE_FRAME, "label", "Tools", NULL);
+	self->grid_tools = gtk_grid_new ();
+
+	self->tool_copy = g_object_new (TOOL_TYPE_COPY_TILE, "label", "copy", NULL);
+
+	gtk_grid_attach (GTK_GRID (self->grid_tools),
+			self->tool_copy,
+			0, 0,
+			1, 1);
+
+	gtk_frame_set_child (GTK_FRAME (self->frame_tools), self->grid_tools);
+	gtk_box_append (GTK_BOX (self->box_info), self->frame_tools);
+
+	g_signal_connect (self->tool_copy, "toggled", G_CALLBACK (toggled_tool_copy), self);
 }
