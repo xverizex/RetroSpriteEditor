@@ -139,6 +139,21 @@ global_nes_palette_get_memory_index (guint32 index)
 	return indexed_colors_palette[index];
 }
 
+static guint8 *tile_background;
+
+void
+global_nes_alloc_tile_background ()
+{
+	if (tile_background == NULL)
+		tile_background = g_malloc0 (16 * 16);
+}
+
+guint8 *
+global_nes_get_tile_background ()
+{
+	return tile_background;
+}
+
 typedef struct _FormData {
 	DataForOutput *st;
 	int cnvs_width;

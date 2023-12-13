@@ -32,3 +32,5 @@ void global_nes_palette_init_map (guint32 index);
 void global_nes_palette_alloc_maps (void);
 void *global_nes_get_map (guint32 indx);
 void *global_nes_screen_get_map (guint32 indx);
+void global_nes_alloc_tile_background (void);
+guint8 *global_nes_get_tile_background (void);

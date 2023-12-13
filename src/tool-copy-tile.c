@@ -40,5 +40,5 @@ tool_copy_tile_init (ToolCopyTile *self)
 {
   ToolButton *parent = TOOL_BUTTON (self);
 
-  tool_button_set_index (parent, INDX_TOOL_COPY_TILE);
+  tool_button_set_index (parent, INDX_TOOL_COPY_TILE_SRC);
 }

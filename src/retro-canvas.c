@@ -29,9 +29,6 @@
 #include "general-tools.h"
 #include "global-functions.h"
 
-typedef struct _TilePos {
-	guint8 draw;
-} TilePos;
 
 struct _RetroCanvas
 {
@@ -62,7 +59,7 @@ struct _RetroCanvas
   gint32 xw;
   gint32 yh;
   guint32 selected_index_color;
-	TilePos tile_background_pos[16 * 16];
+	guint8 *tile_background_pos;
 	gint32 first_tile_x;
 	gint32 first_tile_y;
 
@@ -83,6 +80,11 @@ struct _RetroCanvas
   guint32 tool;
   gboolean drawing_tool;
 	guint32 index_id;
+
+	gint32 tile_start_x;
+	gint32 tile_start_y;
+	gint32 tile_end_x;
+	gint32 tile_end_y;
 
   GtkEventController *event_zoom;
   GtkEventController *event_motion;
@@ -275,19 +277,28 @@ selection_bottom_right_left_up (RetroCanvas *self, guint32 cxx, guint32 cyy)
 	int ey = cyy;
 	guint8 cur_draw = 0xff;
 	guint32 found = 0;
+	self->tile_start_x = -1;
+	self->tile_start_y = -1;
+	self->tile_end_x = -1;
+	self->tile_end_y = -1;
+
+	self->tile_start_x = cxx;
+	self->tile_start_y = ey;
+	self->tile_end_x = fx;
+	self->tile_end_y = cyy;
 
 	for (int dy = 0; dy < 16; dy++) {
 		for (int dx = 0; dx < 16; dx++) {
 			found = 0;
 			if ((dy <= fy) && (dy >= ey)) {
 				if ((dx <= fx) && (dx >= ex)) {
-					self->tile_background_pos[dy * 16 + dx].draw = cur_draw;
+					self->tile_background_pos[dy * 16 + dx] = cur_draw;
 					found = 1;
 					continue;
 				}
 			}
 			if (found == 0) {
-				self->tile_background_pos[dy * 16 + dx].draw = 0;
+				self->tile_background_pos[dy * 16 + dx] = 0;
 			}
 		}
 	}
@@ -296,25 +307,33 @@ selection_bottom_right_left_up (RetroCanvas *self, guint32 cxx, guint32 cyy)
 static void
 selection_bottom_left_right_up (RetroCanvas *self, guint32 cxx, guint32 cyy)
 {
+	self->tile_start_x = -1;
+	self->tile_start_y = -1;
+	self->tile_end_x = -1;
+	self->tile_end_y = -1;
 	int fx = self->first_tile_x;
 	int fy = self->first_tile_y;
 	int ex = cxx;
 	int ey = cyy;
 	guint8 cur_draw = 0xff;
 	guint32 found = 0;
+	self->tile_start_x = fx;
+	self->tile_start_y = ey;
+	self->tile_end_x = ex;
+	self->tile_end_y = fy;
 
 	for (int dy = 0; dy < 16; dy++) {
 		for (int dx = 0; dx < 16; dx++) {
 			found = 0;
 			if ((dy <= fy) && (dy >= ey)) {
 				if ((dx >= fx) && (dx <= ex)) {
-					self->tile_background_pos[dy * 16 + dx].draw = cur_draw;
+					self->tile_background_pos[dy * 16 + dx] = cur_draw;
 					found = 1;
 					continue;
 				}
 			}
 			if (found == 0) {
-				self->tile_background_pos[dy * 16 + dx].draw = 0;
+				self->tile_background_pos[dy * 16 + dx] = 0;
 			}
 		}
 	}
@@ -323,25 +342,33 @@ selection_bottom_left_right_up (RetroCanvas *self, guint32 cxx, guint32 cyy)
 static void
 selection_top_right_left_down (RetroCanvas *self, guint32 cxx, guint32 cyy)
 {
+	self->tile_start_x = -1;
+	self->tile_start_y = -1;
+	self->tile_end_x = -1;
+	self->tile_end_y = -1;
 	int fx = self->first_tile_x;
 	int fy = self->first_tile_y;
 	int ex = cxx;
 	int ey = cyy;
 	guint8 cur_draw = 0xff;
 	guint32 found = 0;
+	self->tile_start_x = ex;
+	self->tile_start_y = fy;
+	self->tile_end_x = fx;
+	self->tile_end_y = ey;
 
 	for (int dy = 0; dy < 16; dy++) {
 		for (int dx = 0; dx < 16; dx++) {
 			found = 0;
 			if ((dy >= fy) && (dy <= ey)) {
 				if ((dx <= fx) && (dx >= ex)) {
-					self->tile_background_pos[dy * 16 + dx].draw = cur_draw;
+					self->tile_background_pos[dy * 16 + dx] = cur_draw;
 					found = 1;
 					continue;
 				}
 			}
 			if (found == 0) {
-				self->tile_background_pos[dy * 16 + dx].draw = 0;
+				self->tile_background_pos[dy * 16 + dx] = 0;
 			}
 		}
 	}
@@ -350,27 +377,157 @@ selection_top_right_left_down (RetroCanvas *self, guint32 cxx, guint32 cyy)
 static void
 selection_top_left_right_down (RetroCanvas *self, guint32 cxx, guint32 cyy)
 {
+	self->tile_start_x = -1;
+	self->tile_start_y = -1;
+	self->tile_end_x = -1;
+	self->tile_end_y = -1;
 	int fx = self->first_tile_x;
 	int fy = self->first_tile_y;
 	int ex = cxx;
 	int ey = cyy;
 	guint8 cur_draw = 0xff;
 	guint32 found = 0;
+	self->tile_start_x = fx;
+	self->tile_start_y = fy;
+	self->tile_end_x = ex;
+	self->tile_end_y = ey;
 
 	for (int dy = 0; dy < 16; dy++) {
 		for (int dx = 0; dx < 16; dx++) {
 			found = 0;
 			if ((dy >= fy) && (dy <= ey)) {
 				if ((dx >= fx) && (dx <= ex)) {
-					self->tile_background_pos[dy * 16 + dx].draw = cur_draw;
+					self->tile_background_pos[dy * 16 + dx] = cur_draw;
 					found = 1;
 					continue;
 				}
 			}
 			if (found == 0) {
-				self->tile_background_pos[dy * 16 + dx].draw = 0;
+				self->tile_background_pos[dy * 16 + dx] = 0;
 			}
 		}
+	}
+}
+
+static void
+draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
+{
+  int posx = self->mx - self->px;
+  int posy = self->my - self->py;
+
+  guint32 count_rect_w = self->orig_width / self->width_rect;
+  guint32 count_rect_h = self->orig_height / self->height_rect;
+
+  guint32 rect_w_result_size = c_pow (self->width_rect, self->scale);
+  guint32 rect_h_result_size = c_pow (self->height_rect, self->scale);
+
+  guint32 y = self->py;
+  guint32 x = self->px;
+  int found = 0;
+  int xx = 1;
+  int yy = 1;
+  int cyy = 0;
+  int cxx = 0;
+  int pointx = 0;
+  int pointy = 0;
+  for (cyy = 0; cyy < count_rect_h; cyy++) {
+    for (cxx = 0; cxx < count_rect_w; cxx++) {
+      int ex = xx + rect_w_result_size;
+      int ey = yy + rect_h_result_size;
+
+      if ((posx >= xx) && (posx <= ex)) {
+        if ((posy >= yy) && (posy <= ey)) {
+          found = 1;
+          break;
+        }
+      }
+      xx += rect_w_result_size;
+      xx++;
+    }
+    if (found)
+      break;
+    yy += rect_h_result_size;
+    yy++;
+    xx = 1;
+  }
+
+  if (found == 0)
+    return;
+
+  double line_width = 1.0;
+
+  if (self->left_top) {
+    x = y = 0;
+  }
+
+	xx = 1;
+	yy = 1;
+
+  if (self->is_0_btn_pressed) {
+		//self->tile_background_pos[cyy * 16 + cxx] = cur_draw;
+	}
+
+	NesPalette *nes = nes_palette_get ();
+
+	int vx = self->tile_start_x;
+	int vy = self->tile_start_y;
+	int vex = self->tile_end_x;
+	int vey = self->tile_end_y;
+
+	int cx = 0;
+	int cy = 0;
+  for (cy = 0; cy < 16; cy++) {
+    for (cx = 0; cx < 16; cx++) {
+			int mx = 1;
+			int my = 1;
+			int nx = 0;
+			int ny = 0;
+			if (self->tile_background_pos[cy * 16 + cx] > 0) {
+				for (my = 1; my < (8 * rect_h_result_size); ) {
+					nx = 0;
+					for ( mx = 1; mx < (8 * rect_w_result_size); ) {
+						int oy = cy * 8 + ny;
+						int ox = cx * 8 + nx;
+						NesTilePoint *p = nes_palette_get_color (nes, ox, oy);
+
+						if (p->index > 0) {
+							guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
+							guint32 *indexed_colour = global_nes_palette_get_memory_index (0);
+
+  						double r, g, b;
+  						colour_rgb_get_double_color (colours[indexed_colour[p->index - 1]], &r, &g, &b);
+  						cairo_set_source_rgb (cr, r, g, b);
+
+  						cairo_rectangle (cr, self->px + vx + mx, self->py + vy + my,
+     		              rect_w_result_size,
+       		            rect_h_result_size);
+
+							cairo_fill (cr);
+						}
+
+						mx += 1;
+						mx += rect_w_result_size;
+						nx++;
+					}
+					my += rect_h_result_size;
+					mx = 1;
+					ny++;
+					my += 1;
+					nx = 0;
+				}
+				vx++;
+			}
+  		xx += rect_w_result_size;
+	  	xx += 1;
+		}
+		vx = self->tile_start_x;
+		cx = 0;
+		if (self->tile_background_pos[cy * 16 + cx] > 0) {
+			vy++;
+		}
+  	yy += rect_h_result_size;
+		yy += 1;
+		xx = 0;
 	}
 }
 
@@ -471,14 +628,14 @@ draw_tool_copy_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
 				selection_bottom_right_left_up (self, cxx, cyy);
 			}
 		}
-		self->tile_background_pos[cyy * 16 + cxx].draw = cur_draw;
+		self->tile_background_pos[cyy * 16 + cxx] = cur_draw;
 	}
 
 	xx = 1;
 	yy = 1;
   for (int cy = 0; cy < count_rect_h; cy++) {
     for (int cx = 0; cx < count_rect_w; cx++) {
-			if (self->tile_background_pos[cy * 16 + cx].draw > 0) {
+			if (self->tile_background_pos[cy * 16 + cx] > 0) {
   			cairo_rectangle (cr, x + xx, y + yy,
      		              rect_w_result_size + 1,
        		            rect_h_result_size + 1);
@@ -607,8 +764,11 @@ draw_tool (cairo_t                 *cr,
 		case INDX_TOOL_PENCIL:
 			draw_tool_pencil (self, cr, width, height);
 			break;
-		case INDX_TOOL_COPY_TILE:
+		case INDX_TOOL_COPY_TILE_SRC:
 			draw_tool_copy_tile (self, cr, width, height);
+			break;
+		case INDX_TOOL_COPY_TILE_DST:
+			draw_tool_copy_tile_dst (self, cr, width, height);
 			break;
 	}
 
@@ -878,6 +1038,7 @@ draw_canvas (GtkDrawingArea *area,
       draw_grid_nes_screen_one_palette (cr, width, height, self);
       draw_grid_nes_screen_megatile_palette (cr, width, height, self);
       draw_screen_background (cr, width, height, self);
+      draw_tool (cr, width, height, self);
 			break;
 		default:
 			break;
@@ -1250,7 +1411,7 @@ clear_tile_selection (RetroCanvas *self)
 {
 	guint32 t = 16 * 16; 
 	for (guint32 it = 0; it < t; it++) {
-		self->tile_background_pos[it].draw = 0;
+		self->tile_background_pos[it] = 0;
 	}
 }
 
@@ -1280,10 +1441,12 @@ mouse_hit_canvas_press (GtkGestureClick *evt,
     		nes_palette_set_color (nes, &n, self->selected_index_color + 1);
 				break;
 
-			case INDX_TOOL_COPY_TILE:
+			case INDX_TOOL_COPY_TILE_SRC:
 				clear_tile_selection (self);
 				self->first_tile_x = -1;
 				self->first_tile_y = -1;
+				break;
+			case INDX_TOOL_COPY_TILE_DST:
 				break;
 		}
 
@@ -1296,6 +1459,12 @@ mouse_hit_canvas_press (GtkGestureClick *evt,
 static void
 retro_canvas_init (RetroCanvas *self)
 {
+	global_nes_alloc_tile_background ();
+	self->tile_background_pos = global_nes_get_tile_background ();
+	self->tile_start_x = -1;
+	self->tile_start_y = -1;
+	self->tile_end_x = -1;
+	self->tile_end_y = -1;
 	self->draw_blank = 0;
 	self->child_one_color = NULL;
   self->colours = NULL;
@@ -1313,7 +1482,7 @@ retro_canvas_init (RetroCanvas *self)
 
 	guint32 t = 16 * 16;
 	for (guint32 it = 0; it < t; it++) {
-		self->tile_background_pos[it].draw = 0;
+		self->tile_background_pos[it] = 0;
 	}
 
   gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (self), draw_canvas,

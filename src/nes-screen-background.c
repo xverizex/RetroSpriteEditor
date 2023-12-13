@@ -61,6 +61,7 @@ toggled_tool_copy (GtkToggleButton *source, gpointer user_data)
 
 	if (is) {
 		retro_canvas_set_tool (RETRO_CANVAS (self->background), type_tool);
+		retro_canvas_set_tool (RETRO_CANVAS (self->screen), INDX_TOOL_COPY_TILE_DST);
 	}
 }
 
