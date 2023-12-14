@@ -29,6 +29,12 @@
 #include "general-tools.h"
 #include "global-functions.h"
 
+typedef struct _TileRef {
+	gint32 tilex;
+	gint32 tiley;
+} TileRef;
+
+#define SCREEN_SIZE         32 * 28 
 
 struct _RetroCanvas
 {
@@ -60,6 +66,7 @@ struct _RetroCanvas
   gint32 yh;
   guint32 selected_index_color;
 	guint8 *tile_background_pos;
+	TileRef *tile_ref;
 	gint32 first_tile_x;
 	gint32 first_tile_y;
 
@@ -481,16 +488,26 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 	int cpowx = c_pow (1, self->scale);
 	int cpowy = c_pow (1, self->scale);
 
+	int offsetx = 1;
+	int offsety = 1;
+	for (int n = 0; n < cyy; n++) {
+		offsety++;
+	}
+	for (int n = 0; n < cxx; n++) {
+		offsetx++;
+	}
+	int blkx = 0;
+	int blky = 0;
+
   for (cy = 0; cy < 16; cy++) {
+		int mx = 0;
+		int my = 0;
     for (cx = 0; cx < 16; cx++) {
-			int mx = 1;
-			int my = 1;
 			int nx = 0;
 			int ny = 0;
 			if (self->tile_background_pos[cy * 16 + cx] > 0) {
-				for (my = 0; my < cpowy * 8; ) {
-					nx = 0;
-					for ( mx = 0; mx < cpowx * 8; ) {
+				for (ny = 0; ny < 8; ) {
+					for ( nx = 0; nx < 8; ) {
 						int oy = cy * 8 + ny;
 						int ox = cx * 8 + nx;
 						NesTilePoint *p = nes_palette_get_color (nes, ox, oy);
@@ -503,12 +520,19 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
   						colour_rgb_get_double_color (colours[indexed_colour[p->index - 1]], &r, &g, &b);
   						cairo_set_source_rgb (cr, r, g, b);
 
+							if (self->is_0_btn_pressed) {
+								//g_print ("%d + %d + %d + %d\n", cyy * count_rect_w, vy * count_rect_w, cxx, vx);
+								int index_pos = cyy * count_rect_w + vy * count_rect_w + cxx + vx;
+								g_print ("index_pos: %d; %d %d\n", index_pos, cx, cy);
+								self->tile_ref[index_pos].tilex = cx;
+								self->tile_ref[index_pos].tiley = cy;
+							}
 							/*
 							 * TODO: fix this
 							 */
   						cairo_rectangle (cr, 
-									self->px + cxx * 8 + vx * 8 + mx, 
-									self->py + cyy * 8 + vy * 8 + my,
+									self->px + cxx * 8 * c_pow (1, self->scale) + vx * 8 * c_pow (1, self->scale) + mx + offsetx + blkx, 
+									self->py + cyy * 8 * c_pow (1, self->scale) + vy * 8 * c_pow (1, self->scale) + my + offsety + blky,
 											cpowx,
 											cpowy);
 
@@ -519,16 +543,20 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 						nx++;
 					}
 					my += cpowy;
-					mx = 0;
 					ny++;
-					nx = 0;
+					mx = 0;
 				}
 				vx++;
+				my = 0;
+				blkx += 1;
 			}
 		}
-		vx = self->tile_start_x;
+		blkx = 0;
+		blky += 1;
+		vx = 0;
 		cx = 0;
 		vy++;
+		my = 0;
 	}
 }
 
@@ -864,40 +892,104 @@ draw_screen_background (cairo_t                 *cr,
   int xx = self->px + 1;
   int yy = self->py + 1;
 
-  int nx = 0;
-  int ny = 0;
+  int posx = self->mx - self->px;
+  int posy = self->my - self->py;
 
-  NesPalette *nes = nes_palette_get ();
-	
-  for (guint32 y = 0; y < self->orig_height; y++) {
-    for (guint32 x = 0; x < self->orig_width; x++) {
+  guint32 count_rect_w = self->orig_width / self->width_rect;
+  guint32 count_rect_h = self->orig_height / self->height_rect;
 
-			guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
-      double r, g, b;
-      NesTilePoint *p = nes_palette_screen_get_color (nes, x, y);
-      if (p->index > 0) {
-        colour_rgb_get_double_color (colours[self->index_color[p->index - 1]], &r, &g, &b);
-        cairo_set_source_rgb (cr, r, g, b);
-        int psize = c_pow (1, self->scale);
-        cairo_rectangle (cr, xx, yy, psize, psize);
-        cairo_fill (cr);
-      }
-      nx++;
-      xx += c_pow (1, self->scale);
-      if (nx == 8) {
-        xx++;
-        nx = 0;
-      }
-    }
-    xx = self->px + 1;
-    nx = 0;
-    ny++;
-    yy += c_pow (1, self->scale);
-    if (ny == 8) {
-      yy++;
-      ny = 0;
-    }
+  guint32 rect_w_result_size = c_pow (self->width_rect, self->scale);
+  guint32 rect_h_result_size = c_pow (self->height_rect, self->scale);
+
+  guint32 y = self->py;
+  guint32 x = self->px;
+  int found = 0;
+  xx = 1;
+  yy = 1;
+  int cyy = 0;
+  int cxx = 0;
+  int pointx = 0;
+  int pointy = 0;
+  double line_width = 1.0;
+
+  if (self->left_top) {
+    x = y = 0;
   }
+
+	xx = 1;
+	yy = 1;
+
+	NesPalette *nes = nes_palette_get ();
+
+	int cx = 0;
+	int cy = 0;
+	
+	int cpowx = c_pow (1, self->scale);
+	int cpowy = c_pow (1, self->scale);
+
+	int offsetx = 1;
+	int offsety = 1;
+
+	int blkx = 0;
+	int blky = 0;
+
+	int max = SCREEN_SIZE;
+
+  for (cyy = 0; cyy < 24; cyy++) {
+		int mx = 0;
+		int my = 0;
+    for (cxx = 0; cxx < 32; cxx++) {
+			int nx = 0;
+			int ny = 0;
+			int index_ref = cyy * 32 + cxx;
+			if (self->tile_ref[index_ref].tilex >= 0 &&
+					self->tile_ref[index_ref].tiley >= 0) {
+				for (ny = 0; ny < 8; ) {
+					for ( nx = 0; nx < 8; ) {
+						cx = self->tile_ref[index_ref].tilex;
+						cy = self->tile_ref[index_ref].tiley;
+						int oy = cy * 8 + ny;
+						int ox = cx * 8 + nx;
+						NesTilePoint *p = nes_palette_get_color (nes, ox, oy);
+
+						if (p->index > 0) {
+							guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
+							guint32 *indexed_colour = global_nes_palette_get_memory_index (0);
+
+  						double r, g, b;
+  						colour_rgb_get_double_color (colours[indexed_colour[p->index - 1]], &r, &g, &b);
+  						cairo_set_source_rgb (cr, r, g, b);
+
+							/*
+							 * TODO: fix this
+							 */
+  						cairo_rectangle (cr, 
+									self->px + cxx * 8 * c_pow (1, self->scale) + mx + offsetx + blkx, 
+									self->py + cyy * 8 * c_pow (1, self->scale) + my + offsety + blky,
+											cpowx,
+											cpowy);
+
+							cairo_fill (cr);
+						}
+
+						mx += cpowx;
+						nx++;
+					}
+					my += cpowy;
+					ny++;
+					mx = 0;
+				}
+				my = 0;
+				blkx += 1;
+			}
+			offsetx++;
+		}
+		offsetx = 1;
+		blkx = 0;
+		blky += 1;
+		cx = 0;
+		my = 0;
+	}
 }
 static void
 draw_pixels (cairo_t                 *cr,
@@ -1480,6 +1572,12 @@ retro_canvas_init (RetroCanvas *self)
   self->tool = 0;
   self->drawing_tool = FALSE;
   self->show_hex_index = FALSE;
+
+	self->tile_ref = g_malloc0 (SCREEN_SIZE * sizeof (guint32) * sizeof (guint32));
+	for (guint32 i = 0; i < SCREEN_SIZE; i++) {
+		self->tile_ref[i].tilex = -1;
+		self->tile_ref[i].tiley = -1;
+	}
 
 	guint32 t = 16 * 16;
 	for (guint32 it = 0; it < t; it++) {
