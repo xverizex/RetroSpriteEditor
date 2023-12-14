@@ -471,11 +471,16 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 
 	int vx = self->tile_start_x;
 	int vy = self->tile_start_y;
-	int vex = self->tile_end_x;
-	int vey = self->tile_end_y;
+	int vex = self->tile_end_x - vx;
+	int vey = self->tile_end_y - vy;
+	vx = vy = 0;
 
 	int cx = 0;
 	int cy = 0;
+	
+	int cpowx = c_pow (1, self->scale);
+	int cpowy = c_pow (1, self->scale);
+
   for (cy = 0; cy < 16; cy++) {
     for (cx = 0; cx < 16; cx++) {
 			int mx = 1;
@@ -483,9 +488,9 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 			int nx = 0;
 			int ny = 0;
 			if (self->tile_background_pos[cy * 16 + cx] > 0) {
-				for (my = 1; my < (8 * rect_h_result_size); ) {
+				for (my = 0; my < cpowy * 8; ) {
 					nx = 0;
-					for ( mx = 1; mx < (8 * rect_w_result_size); ) {
+					for ( mx = 0; mx < cpowx * 8; ) {
 						int oy = cy * 8 + ny;
 						int ox = cx * 8 + nx;
 						NesTilePoint *p = nes_palette_get_color (nes, ox, oy);
@@ -498,36 +503,32 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
   						colour_rgb_get_double_color (colours[indexed_colour[p->index - 1]], &r, &g, &b);
   						cairo_set_source_rgb (cr, r, g, b);
 
-  						cairo_rectangle (cr, self->px + vx + mx, self->py + vy + my,
-     		              rect_w_result_size,
-       		            rect_h_result_size);
+							/*
+							 * TODO: fix this
+							 */
+  						cairo_rectangle (cr, 
+									self->px + cxx * 8 + vx * 8 + mx, 
+									self->py + cyy * 8 + vy * 8 + my,
+											cpowx,
+											cpowy);
 
 							cairo_fill (cr);
 						}
 
-						mx += 1;
-						mx += rect_w_result_size;
+						mx += cpowx;
 						nx++;
 					}
-					my += rect_h_result_size;
-					mx = 1;
+					my += cpowy;
+					mx = 0;
 					ny++;
-					my += 1;
 					nx = 0;
 				}
 				vx++;
 			}
-  		xx += rect_w_result_size;
-	  	xx += 1;
 		}
 		vx = self->tile_start_x;
 		cx = 0;
-		if (self->tile_background_pos[cy * 16 + cx] > 0) {
-			vy++;
-		}
-  	yy += rect_h_result_size;
-		yy += 1;
-		xx = 0;
+		vy++;
 	}
 }
 
