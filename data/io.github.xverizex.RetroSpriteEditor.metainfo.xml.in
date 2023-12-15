@@ -18,7 +18,7 @@
 		</screenshot>
 	</screenshots>
 	<releases>
-		<release date="2023-12-15" version="0.2.00">
+		<release date="2023-12-15" version="0.2.2">
 			<description>
 				<p>Added posibility to set screen NES and export to ca65.</p>
 			</description>

@@ -370,11 +370,4 @@ main_window_init (MainWindow *self)
 
 	main_window_create_nes_widgets (self);
 
-#if 1
-	char *c_project = g_strdup ("/home/vi/code/nes_game_fishing/src/assets/fisishing0.rse");
-
-	main_window_connect_widgets (self);
-	nes_palette_clean_map ();
-	project_open_nes (c_project);
-#endif
 }
