@@ -1035,9 +1035,9 @@ draw_screen_background (cairo_t                 *cr,
 					mx = 0;
 				}
 				my = 0;
-				blkx += 1;
+				//blkx += 1;
 			}
-			//offsetx++;
+			offsetx++;
 		}
 		offsetx = 1;
 		blkx = 0;
