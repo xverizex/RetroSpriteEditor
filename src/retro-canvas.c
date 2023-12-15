@@ -441,6 +441,64 @@ selection_top_left_right_down (RetroCanvas *self, guint32 cxx, guint32 cyy)
 }
 
 static void
+draw_tool_clear_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
+{
+  int posx = self->mx - self->px;
+  int posy = self->my - self->py;
+
+  guint32 count_rect_w = self->orig_width / self->width_rect;
+  guint32 count_rect_h = self->orig_height / self->height_rect;
+
+  guint32 rect_w_result_size = c_pow (self->width_rect, self->scale);
+  guint32 rect_h_result_size = c_pow (self->height_rect, self->scale);
+
+  guint32 y = self->py;
+  guint32 x = self->px;
+  int found = 0;
+  int xx = 1;
+  int yy = 1;
+  int cyy = 0;
+  int cxx = 0;
+  int pointx = 0;
+  int pointy = 0;
+  for (cyy = 0; cyy < count_rect_h; cyy++) {
+    for (cxx = 0; cxx < count_rect_w; cxx++) {
+      int ex = xx + rect_w_result_size;
+      int ey = yy + rect_h_result_size;
+
+      if ((posx >= xx) && (posx <= ex)) {
+        if ((posy >= yy) && (posy <= ey)) {
+          found = 1;
+          break;
+        }
+      }
+      xx += rect_w_result_size;
+      xx++;
+    }
+    if (found)
+      break;
+    yy += rect_h_result_size;
+    yy++;
+    xx = 1;
+  }
+
+  if (found == 0)
+    return;
+
+  double line_width = 1.0;
+
+  if (self->left_top) {
+    x = y = 0;
+  }
+
+	if (self->is_0_btn_pressed) {
+		TileRef *ref = &self->tile_ref[cyy * 32 + cxx];
+		ref->tilex = -1;
+		ref->tiley = -1;
+	}
+}
+
+static void
 draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 {
   int posx = self->mx - self->px;
@@ -834,6 +892,9 @@ draw_tool (cairo_t                 *cr,
 			break;
 		case INDX_TOOL_COPY_TILE_DST:
 			draw_tool_copy_tile_dst (self, cr, width, height);
+			break;
+		case INDX_TOOL_CLEAR_TILE:
+			draw_tool_clear_tile (self, cr, width, height);
 			break;
 	}
 
@@ -1659,6 +1720,8 @@ mouse_hit_canvas_press (GtkGestureClick *evt,
 			case INDX_TOOL_NES_MEGATILE:
 				calculate_megatile (self, x, y);
 				set_palette_megatile (self);
+				break;
+			case INDX_TOOL_CLEAR_TILE:
 				break;
 		}
 

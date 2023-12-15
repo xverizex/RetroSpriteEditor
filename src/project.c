@@ -630,6 +630,35 @@ export_to_ca65 (void)
 
 		gchar *s = data;
 		s += n;
+
+		TileRef *tile_ref = retro_canvas_screen_nes_get_tile_ref ();
+		int screen_size = 32 * 28;
+
+		guint16 addr = 0x2000;
+		for (int i = 0; i < screen_size; i++) {
+			if (tile_ref[i].tilex >= 0 && tile_ref[i].tiley >= 0) {
+				int tile = tile_ref[i].tiley * 32 + tile_ref[i].tilex;
+				guint8 a0 = (addr & 0xff00) >> 8;
+				guint8 a1 = (addr & 0x00ff) >> 0;
+				snprintf (s, 64, 
+						"\tLDA #$%x\n"
+						"\tSTA $2006\n"
+						"\tLDA #$%x\n"
+						"\tSTA $2006\n"
+						"\tLDX #$%x\n"
+						"\tSTX $2007\n"
+						"%n",
+						a0, a1,
+						tile,
+						&n);
+				s += n;
+			}
+			addr++;
+		}
+
+		snprintf (s, 255, "\n\n%n", &n);
+		s += n;
+
 		/*
 		 * save palettes megatiles
 		 */

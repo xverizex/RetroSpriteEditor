@@ -25,6 +25,7 @@
 #include "retro-canvas.h"
 #include "global-functions.h"
 #include "tool-copy-tile.h"
+#include "tool-clear-tile.h"
 #include "project.h"
 
 struct _NesScreenBackground
@@ -42,6 +43,7 @@ struct _NesScreenBackground
 	GtkWidget   *grid_tools;
 	GtkWidget   *tool_copy;
 	GtkWidget   *tool_megatile;
+	GtkWidget   *tool_clear;
 	GtkWidget   *btn_export;
 };
 
@@ -51,6 +53,21 @@ static void
 nes_screen_background_class_init (NesScreenBackgroundClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+}
+
+static void
+toggled_tool_clear (GtkToggleButton *source, gpointer user_data)
+{
+	NesScreenBackground *self = NES_SCREEN_BACKGROUND (user_data);
+
+	gboolean is = gtk_toggle_button_get_active (source);
+
+	guint32 type_tool = tool_button_get_type_index (TOOL_BUTTON (self->tool_clear));
+
+	if (is) {
+		retro_canvas_set_tool (RETRO_CANVAS (self->background), 0);
+		retro_canvas_set_tool (RETRO_CANVAS (self->screen), INDX_TOOL_CLEAR_TILE);
+	}
 }
 
 static void
@@ -207,6 +224,7 @@ nes_screen_background_init (NesScreenBackground *self)
 
 	self->tool_copy = g_object_new (TOOL_TYPE_COPY_TILE, "label", "copy", NULL);
 	self->tool_megatile = g_object_new (TOOL_TYPE_COPY_TILE, "label", "megatile", NULL);
+	self->tool_clear = g_object_new (TOOL_TYPE_CLEAR_TILE, "label", "clear", NULL);
 
 	gtk_grid_attach (GTK_GRID (self->grid_tools),
 			self->tool_copy,
@@ -217,15 +235,27 @@ nes_screen_background_init (NesScreenBackground *self)
 			self->tool_megatile,
 			1, 0,
 			1, 1);
+	
+	gtk_grid_attach (GTK_GRID (self->grid_tools),
+			self->tool_clear,
+			2, 0,
+			1, 1);
 
 	gtk_toggle_button_set_group (GTK_TOGGLE_BUTTON (self->tool_copy),
 			GTK_TOGGLE_BUTTON (self->tool_megatile));
+
+	gtk_toggle_button_set_group (GTK_TOGGLE_BUTTON (self->tool_megatile),
+			GTK_TOGGLE_BUTTON (self->tool_clear));
+
+	gtk_toggle_button_set_group (GTK_TOGGLE_BUTTON (self->tool_copy),
+			GTK_TOGGLE_BUTTON (self->tool_clear));
 
 	gtk_frame_set_child (GTK_FRAME (self->frame_tools), self->grid_tools);
 	gtk_box_append (GTK_BOX (self->box_info), self->frame_tools);
 
 	g_signal_connect (self->tool_copy, "toggled", G_CALLBACK (toggled_tool_copy), self);
 	g_signal_connect (self->tool_megatile, "toggled", G_CALLBACK (toggled_tool_megatile), self);
+	g_signal_connect (self->tool_clear, "toggled", G_CALLBACK (toggled_tool_clear), self);
 
 	self->btn_export = gtk_button_new_with_label ("EXPORT");
 	gtk_box_append (GTK_BOX (self->box_info), self->btn_export);
