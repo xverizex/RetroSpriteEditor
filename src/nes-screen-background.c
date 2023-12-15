@@ -25,6 +25,7 @@
 #include "retro-canvas.h"
 #include "global-functions.h"
 #include "tool-copy-tile.h"
+#include "project.h"
 
 struct _NesScreenBackground
 {
@@ -41,6 +42,7 @@ struct _NesScreenBackground
 	GtkWidget   *grid_tools;
 	GtkWidget   *tool_copy;
 	GtkWidget   *tool_megatile;
+	GtkWidget   *btn_export;
 };
 
 G_DEFINE_FINAL_TYPE (NesScreenBackground, nes_screen_background, GTK_TYPE_WINDOW)
@@ -89,6 +91,11 @@ nes_screen_background_get_frame_megatile (guint32 indx)
 	return global->frame_megatile[indx];
 }
 
+static void
+export_click (GtkButton *btn, gpointer user_data)
+{
+	project_nes_export_screen ();
+}
 
 static void
 nes_screen_background_init (NesScreenBackground *self)
@@ -219,4 +226,9 @@ nes_screen_background_init (NesScreenBackground *self)
 
 	g_signal_connect (self->tool_copy, "toggled", G_CALLBACK (toggled_tool_copy), self);
 	g_signal_connect (self->tool_megatile, "toggled", G_CALLBACK (toggled_tool_megatile), self);
+
+	self->btn_export = gtk_button_new_with_label ("EXPORT");
+	gtk_box_append (GTK_BOX (self->box_info), self->btn_export);
+
+	g_signal_connect (self->btn_export, "clicked", G_CALLBACK (export_click), self);
 }

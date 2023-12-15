@@ -93,6 +93,9 @@ bank_memory_activate0 (GtkCheckButton *btn,
                        gpointer        data)
 {
   NesPalette *self = NES_PALETTE (data);
+	if (self->window_screen)
+		gtk_window_close (GTK_WINDOW (self->window_screen));
+
   CanvasSettings sets;
   sets.type_canvas   = TYPE_CANVAS_TILESET;
   sets.canvas_width  = DEFAULT_CANVAS_WIDTH;

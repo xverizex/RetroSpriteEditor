@@ -443,7 +443,7 @@ open_nes_screen_palettes ()
 			);
 
 	guint8 *tile = retro_canvas_screen_nes_get_megatile ();
-	int screen_size = 32 * 28;
+	int screen_size = 8 * 7;
 	for (int i = 0; i < screen_size; i++) {
 		g_input_stream_read (G_INPUT_STREAM (in), &tile[i], sizeof (guint8), NULL, NULL);
 	}
@@ -502,7 +502,7 @@ save_nes_screen_palettes (gchar *screen_palette)
 	}
 
 	guint8 *tile = retro_canvas_screen_nes_get_megatile ();
-	int screen_size = 32 * 28;
+	int screen_size = 8 * 7;
 	for (int i = 0; i < screen_size; i++) {
 		g_output_stream_write (G_OUTPUT_STREAM (out), &tile[i], sizeof (guint8), NULL, NULL);
 	}
@@ -532,4 +532,131 @@ project_save_nes (void)
 	xmlTextWriterEndElement (writer);
 	xmlTextWriterEndDocument (writer);
 	xmlFreeTextWriter (writer);
+}
+
+static void
+export_to_ca65 (void)
+{
+	gchar path[512];
+	snprintf (path, 512, "%s/screen_ca65.s", prj->folder_path);
+
+	GFile *file = g_file_new_for_path (path);
+
+	GFileOutputStream *out = NULL;
+	if (g_file_query_exists (file, NULL)) {
+		out = g_file_replace (file,
+				NULL,
+				FALSE,
+				G_FILE_CREATE_REPLACE_DESTINATION,
+				NULL,
+				NULL);
+	} else {
+		out = g_file_create (file,
+			G_FILE_CREATE_NONE,
+			NULL,
+			NULL
+			);
+	}
+
+	guint32 *c0 = global_nes_palette_get_memory_index (0);
+	guint32 *c1 = global_nes_palette_get_memory_index (1);
+	guint32 *c2 = global_nes_palette_get_memory_index (2);
+	guint32 *c3 = global_nes_palette_get_memory_index (3);
+
+	int n = 0;
+	gchar *data = g_malloc0 (4096);
+	snprintf (data,
+			4096,
+			"; save to 0 palette.\n"
+			"\tLDX #$3f\n"
+			"\tSTX $2006\n"
+			"\tLDX #$00\n"
+			"\tSTX $2006\n"
+			"\t\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"; save to 1 palette.\n"
+			"\tLDX #$3f\n"
+			"\tSTX $2006\n"
+			"\tLDX #$05\n"
+			"\tSTX $2006\n"
+			"\t\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"; save to 2 palette.\n"
+			"\tLDX #$3f\n"
+			"\tSTX $2006\n"
+			"\tLDX #$09\n"
+			"\tSTX $2006\n"
+			"\t\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"; save to 3 palette.\n"
+			"\tLDX #$3f\n"
+			"\tSTX $2006\n"
+			"\tLDX #$0d\n"
+			"\tSTX $2006\n"
+			"\t\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"\tLDX #$%x\n"
+			"\tSTX $2007\n"
+			"\t\n"
+			"\t\n"
+			"\t\n"
+			"%n"
+			,
+		c0[0], c0[1], c0[2], c0[3],
+		c1[1], c1[2], c1[3],
+		c2[1], c2[2], c2[3],
+		c3[1], c3[2], c3[3],
+		&n);
+
+		gchar *s = data;
+		s += n;
+		/*
+		 * save palettes megatiles
+		 */
+
+		guint8 *tile = retro_canvas_screen_nes_get_megatile ();
+		int megatile_count = 8 * 7;
+		int indx = 0;
+		for (int i = 0; i < 14; i++) {
+			snprintf (s, 255, ".byte $%x, $%x, $%x, $%x\n%n",
+					tile[indx + 0],
+					tile[indx + 1],
+					tile[indx + 2],
+					tile[indx + 3],
+					&n
+					);
+			indx += 4;
+			s += n;
+		}
+
+		guint32 len_data = strlen (data);
+
+	g_output_stream_write (G_OUTPUT_STREAM (out), data, len_data, NULL, NULL);
+	g_output_stream_close (G_OUTPUT_STREAM (out), NULL, NULL);
+}
+
+void
+project_nes_export_screen ()
+{
+	export_to_ca65 ();
 }

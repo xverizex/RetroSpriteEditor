@@ -971,7 +971,7 @@ draw_screen_background (cairo_t                 *cr,
 
 	int max = NES_SCREEN_SIZE;
 
-  for (cyy = 0; cyy < 24; cyy++) {
+  for (cyy = 0; cyy < 28; cyy++) {
 		int mx = 0;
 		int my = 0;
     for (cxx = 0; cxx < 32; cxx++) {
