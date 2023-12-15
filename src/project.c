@@ -2,6 +2,7 @@
 #include "nes-list-palettes.h"
 #include "nes-item-palette.h"
 #include "nes-palette.h"
+#include "retro-canvas.h"
 #include "global-functions.h"
 #include <libxml/xmlwriter.h>
 #include <libxml/xmlreader.h>
@@ -25,15 +26,23 @@ typedef struct _NesConfig {
 struct Project {
 	char *folder_path;
 	char *name;
+	char *name_screen;
 	char *fullpath_to_project;
 	char *file_to_export;
 	NesConfig nes;
 };
 
 struct Project *prj;
+static void open_nes_ref (void);
+static void open_nes_screen_palettes (void);
 
 void project_free (void)
 {
+	if (prj->name_screen) {
+		g_free (prj->name_screen);
+		prj->name_screen = NULL;
+	}
+
 	if (prj->folder_path) {
 		g_free (prj->folder_path);
 		prj->folder_path = NULL;
@@ -71,7 +80,14 @@ project_free_and_alloc (void)
 static void
 write_header (xmlTextWriterPtr *writ)
 {
+	if (prj->name_screen == NULL) {
+		prj->name_screen = g_strdup ("screen");
+	}
 	xmlTextWriterPtr writer = *writ;
+	gchar screen_palettes[512];
+	gchar screen_ref[512];
+	snprintf (screen_palettes, 512, "%s/%s.palettes", prj->folder_path, prj->name_screen);
+	snprintf (screen_ref, 512, "%s/%s.ref", prj->folder_path, prj->name_screen);
 
 	writer = xmlNewTextWriterFilename (prj->fullpath_to_project, 0);
 	xmlTextWriterStartDocument (writer, NULL, "UTF-8", NULL);
@@ -80,6 +96,7 @@ write_header (xmlTextWriterPtr *writ)
 			xmlTextWriterWriteElement (writer, "platform_id", "0");
 			xmlTextWriterWriteElement (writer, "project_name", prj->name);
 			xmlTextWriterWriteElement (writer, "project_folder", prj->folder_path);
+			xmlTextWriterWriteElement (writer, "screen", prj->name_screen);
 			xmlTextWriterWriteElement (writer, "fullpath", prj->fullpath_to_project);
 	xmlTextWriterEndElement (writer);
 	xmlTextWriterStartElement (writer, "ExportSettings");
@@ -117,6 +134,7 @@ project_set_folder_and_name (const char *folder, const char *name)
 	prj->name = g_strdup (name);
 	prj->fullpath_to_project = g_strdup_printf ("%s/%s.rse", folder, name);
 	prj->file_to_export = g_strdup_printf ("%s/%s.chr", folder, name);
+	prj->name_screen = g_strdup_printf ("screen");
 	memset (&prj->nes, 0, sizeof (NesConfig));
 
 	xmlTextWriterPtr writer;
@@ -171,6 +189,7 @@ handle_nes_name_value (const xmlChar *name, const xmlChar *value)
 	check_and_write (name, "project_folder", value, (void **) &prj->folder_path, TYPE_STRING);
 	check_and_write (name, "fullpath", value, (void **) &prj->fullpath_to_project, TYPE_STRING);
 	check_and_write (name, "outfile", value, (void **) &prj->file_to_export, TYPE_STRING);
+	check_and_write (name, "screen", value, (void **) &prj->name_screen, TYPE_STRING);
 	if (!strncmp (name, "p00", 4)) {
 		unsigned int val = atoi (value);
 		prj->nes.nes_p0[prj->nes.nes_pal][prj->nes.nes_np0++] = val;
@@ -344,6 +363,8 @@ project_open_nes (char *filepath)
 	}
 
 	read_tilemap_and_set_nes ();
+	open_nes_ref ();
+	open_nes_screen_palettes ();
 }
 
 static void
@@ -379,12 +400,135 @@ write_nes_palettes (xmlTextWriterPtr writer)
 	xmlTextWriterEndElement (writer);
 }
 
+static void
+open_nes_ref ()
+{
+	gchar screen_ref[512];
+	snprintf (screen_ref, 512, "%s/%s.ref", prj->folder_path, prj->name_screen);
+	GFile *file_ref = g_file_new_for_path (screen_ref);
+
+	if (!g_file_query_exists (file_ref, NULL)) {
+		return;
+	}
+	GFileInputStream *in = NULL;
+	in = g_file_read (file_ref,
+			NULL,
+			NULL
+			);
+
+	TileRef *tile = retro_canvas_screen_nes_get_tile_ref ();
+	int screen_size = 32 * 28;
+	for (int i = 0; i < screen_size; i++) {
+		g_input_stream_read (G_INPUT_STREAM (in), &tile[i], sizeof (TileRef), NULL, NULL);
+	}
+
+	g_input_stream_close (G_INPUT_STREAM (in), NULL, NULL);
+}
+
+static void
+open_nes_screen_palettes ()
+{
+	gchar screen_palettes[512];
+	snprintf (screen_palettes, 512, "%s/%s.palettes", prj->folder_path, prj->name_screen);
+
+	GFile *file_ref = g_file_new_for_path (screen_palettes);
+
+	if (!g_file_query_exists (file_ref, NULL)) {
+		return;
+	}
+	GFileInputStream *in = NULL;
+	in = g_file_read (file_ref,
+			NULL,
+			NULL
+			);
+
+	guint8 *tile = retro_canvas_screen_nes_get_megatile ();
+	int screen_size = 32 * 28;
+	for (int i = 0; i < screen_size; i++) {
+		g_input_stream_read (G_INPUT_STREAM (in), &tile[i], sizeof (guint8), NULL, NULL);
+	}
+
+	g_input_stream_close (G_INPUT_STREAM (in), NULL, NULL);
+}
+static void
+save_nes_ref (gchar *screen_ref)
+{
+	GFile *file_ref = g_file_new_for_path (screen_ref);
+
+	GFileOutputStream *out = NULL;
+	if (g_file_query_exists (file_ref, NULL)) {
+		out = g_file_replace (file_ref,
+				NULL,
+				FALSE,
+				G_FILE_CREATE_REPLACE_DESTINATION,
+				NULL,
+				NULL);
+	} else {
+		out = g_file_create (file_ref,
+			G_FILE_CREATE_NONE,
+			NULL,
+			NULL
+			);
+	}
+
+	TileRef *tile = retro_canvas_screen_nes_get_tile_ref ();
+	int screen_size = 32 * 28;
+	for (int i = 0; i < screen_size; i++) {
+		g_output_stream_write (G_OUTPUT_STREAM (out), &tile[i], sizeof (TileRef), NULL, NULL);
+	}
+
+	g_output_stream_close (G_OUTPUT_STREAM (out), NULL, NULL);
+}
+
+static void
+save_nes_screen_palettes (gchar *screen_palette)
+{
+	GFile *file_ref = g_file_new_for_path (screen_palette);
+
+	GFileOutputStream *out = NULL;
+	if (g_file_query_exists (file_ref, NULL)) {
+		out = g_file_replace (file_ref,
+				NULL,
+				FALSE,
+				G_FILE_CREATE_REPLACE_DESTINATION,
+				NULL,
+				NULL);
+	} else {
+		out = g_file_create (file_ref,
+			G_FILE_CREATE_NONE,
+			NULL,
+			NULL
+			);
+	}
+
+	guint8 *tile = retro_canvas_screen_nes_get_megatile ();
+	int screen_size = 32 * 28;
+	for (int i = 0; i < screen_size; i++) {
+		g_output_stream_write (G_OUTPUT_STREAM (out), &tile[i], sizeof (guint8), NULL, NULL);
+	}
+
+	g_output_stream_close (G_OUTPUT_STREAM (out), NULL, NULL);
+}
+static void
+write_nes_screen (xmlTextWriterPtr writer)
+{
+	gchar screen_palettes[512];
+	gchar screen_ref[512];
+	snprintf (screen_palettes, 512, "%s/%s.palettes", prj->folder_path, prj->name_screen);
+	snprintf (screen_ref, 512, "%s/%s.ref", prj->folder_path, prj->name_screen);
+	
+	save_nes_ref (screen_ref);
+	save_nes_screen_palettes (screen_palettes);
+
+}
+
 void
-project_save_palettes (void)
+project_save_nes (void)
 {
 	xmlTextWriterPtr writer;
 	write_header (&writer);
 	write_nes_palettes (writer);
+	write_nes_screen (writer);
 	xmlTextWriterEndElement (writer);
 	xmlTextWriterEndDocument (writer);
 	xmlFreeTextWriter (writer);

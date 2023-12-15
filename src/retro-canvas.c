@@ -31,11 +31,6 @@
 #include "nes-screen-background.h"
 #include "nes-frame-megatile.h"
 
-typedef struct _TileRef {
-	gint32 tilex;
-	gint32 tiley;
-} TileRef;
-
 #define NES_SCREEN_SIZE         32 * 28 
 #define NES_MEGATILE_COUNT       8 *  7
 
@@ -117,6 +112,18 @@ enum {
 static RetroCanvas *global_drawing_canvas;
 static RetroCanvas *global_drawing_canvas_tileset;
 static RetroCanvas *global_drawing_canvas_screen;
+
+guint8 *
+retro_canvas_screen_nes_get_megatile ()
+{
+	return global_drawing_canvas_screen->megatile;
+}
+
+void *
+retro_canvas_screen_nes_get_tile_ref ()
+{
+	return global_drawing_canvas_screen->tile_ref;
+}
 
 void
 retro_canvas_nes_set_screen (RetroCanvas *self)
@@ -1687,7 +1694,7 @@ retro_canvas_init (RetroCanvas *self)
 
 	self->megatile = g_malloc0 (sizeof (guint8) * NES_MEGATILE_COUNT);
 
-	self->tile_ref = g_malloc0 (NES_SCREEN_SIZE * sizeof (guint32) * sizeof (guint32));
+	self->tile_ref = g_malloc0 (NES_SCREEN_SIZE * sizeof (TileRef));
 	for (guint32 i = 0; i < NES_SCREEN_SIZE; i++) {
 		self->tile_ref[i].tilex = -1;
 		self->tile_ref[i].tiley = -1;

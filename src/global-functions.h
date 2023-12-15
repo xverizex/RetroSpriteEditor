@@ -16,6 +16,11 @@ typedef struct _DataForOutput {
 	gsize size;
 } DataForOutput;
 
+typedef struct _TileRef {
+	gint32 tilex;
+	gint32 tiley;
+} TileRef;
+
 void global_get_data_for_output (DataForOutput *st);
 guint32 global_get_max_index (void);
 guint32 global_type_palette_get_cur_platform (void);

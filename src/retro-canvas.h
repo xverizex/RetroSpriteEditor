@@ -129,6 +129,9 @@ guint8 *
 retro_canvas_get_megatile (RetroCanvas *self);
 
 guint8 *
+retro_canvas_screen_nes_get_megatile (void);
+
+guint8 *
 retro_canvas_nes_get_megatile_by_block (RetroCanvas *self);
 
 void
@@ -137,3 +140,5 @@ retro_canvas_nes_set_screen (RetroCanvas *self);
 GtkWidget *
 retro_canvas_nes_get_screen (void);
 
+void *
+retro_canvas_screen_nes_get_tile_ref (void);

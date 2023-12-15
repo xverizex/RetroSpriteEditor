@@ -194,7 +194,7 @@ action_save_project (GSimpleAction *simple,
 	MainWindow *self = MAIN_WINDOW (user_data);
 
 	export_to_file (self);
-	project_save_palettes ();
+	project_save_nes ();
 }
 
 
