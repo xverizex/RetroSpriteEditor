@@ -29,3 +29,6 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (NesFrameMegatile, nes_frame_megatile, NES, FRAME_MEGATILE, GtkFrame)
 
 G_END_DECLS
+
+GtkWidget *
+nes_frame_megatile_get_canvas (NesFrameMegatile *self);

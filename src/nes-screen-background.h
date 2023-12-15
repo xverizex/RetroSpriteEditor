@@ -29,3 +29,6 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (NesScreenBackground, nes_screen_background, NES, SCREEN_BACKGROUND, GtkWindow)
 
 G_END_DECLS
+
+GtkWidget *
+nes_screen_background_get_frame_megatile (guint32 indx);

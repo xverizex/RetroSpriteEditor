@@ -28,13 +28,16 @@
 #include "nes-current-palette.h"
 #include "general-tools.h"
 #include "global-functions.h"
+#include "nes-screen-background.h"
+#include "nes-frame-megatile.h"
 
 typedef struct _TileRef {
 	gint32 tilex;
 	gint32 tiley;
 } TileRef;
 
-#define SCREEN_SIZE         32 * 28 
+#define NES_SCREEN_SIZE         32 * 28 
+#define NES_MEGATILE_COUNT       8 *  7
 
 struct _RetroCanvas
 {
@@ -69,6 +72,7 @@ struct _RetroCanvas
 	TileRef *tile_ref;
 	gint32 first_tile_x;
 	gint32 first_tile_y;
+	guint8 *megatile;
 
   gboolean is_2_btn_pressed;
   gboolean is_0_btn_pressed;
@@ -112,6 +116,19 @@ enum {
 
 static RetroCanvas *global_drawing_canvas;
 static RetroCanvas *global_drawing_canvas_tileset;
+static RetroCanvas *global_drawing_canvas_screen;
+
+void
+retro_canvas_nes_set_screen (RetroCanvas *self)
+{
+	global_drawing_canvas_screen = self;
+}
+
+GtkWidget *
+retro_canvas_nes_get_screen ()
+{
+	return GTK_WIDGET (global_drawing_canvas_screen);
+}
 
 void
 retro_canvas_redraw_drawing_and_tileset (void)
@@ -523,7 +540,7 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 							if (self->is_0_btn_pressed) {
 								//g_print ("%d + %d + %d + %d\n", cyy * count_rect_w, vy * count_rect_w, cxx, vx);
 								int index_pos = cyy * count_rect_w + vy * count_rect_w + cxx + vx;
-								g_print ("index_pos: %d; %d %d\n", index_pos, cx, cy);
+								//g_print ("index_pos: %d; %d %d\n", index_pos, cx, cy);
 								self->tile_ref[index_pos].tilex = cx;
 								self->tile_ref[index_pos].tiley = cy;
 							}
@@ -681,7 +698,7 @@ draw_tool_copy_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
 }
 
 static void
-draw_tool_pencil (RetroCanvas *self, cairo_t *cr, int width, int height)
+calculate_last_block_and_point (RetroCanvas *self, int *ax, int *ay)
 {
   int posx = self->mx - self->px;
   int posy = self->my - self->py;
@@ -730,6 +747,8 @@ draw_tool_pencil (RetroCanvas *self, cairo_t *cr, int width, int height)
 
   for (y = yy; y < (yy + rect_h_result_size);) {
     for (x = xx; x < (xx + rect_w_result_size);) {
+			*ax = x;
+			*ay = y;
       int ex = x + c_pow (1, self->scale);
       int ey = y + c_pow (1, self->scale);
       if ((posx >= x) && (posx <= ex)) {
@@ -756,6 +775,15 @@ draw_tool_pencil (RetroCanvas *self, cairo_t *cr, int width, int height)
   self->last_pointy = pointy;
   self->last_blockx = cxx;
   self->last_blocky = cyy;
+}
+
+static void
+draw_tool_pencil (RetroCanvas *self, cairo_t *cr, int width, int height)
+{
+	int x, y;
+	x = y = 0;
+	calculate_last_block_and_point (self, &x, &y);
+
   int psize = 1;
 
   if (self->is_0_btn_pressed) {
@@ -768,8 +796,9 @@ draw_tool_pencil (RetroCanvas *self, cairo_t *cr, int width, int height)
     nes_palette_set_color (nes, &n, self->selected_index_color + 1);
   }
 
+	guint32 *colour = global_type_palette_get_cur_ptr_palette (0);
   double r, g, b;
-  colour_rgb_get_double_color (self->colours[self->index_color[self->selected_index_color]], &r, &g, &b);
+  colour_rgb_get_double_color (colour[self->index_color[self->selected_index_color]], &r, &g, &b);
   cairo_set_source_rgb (cr, r, g, b);
 
 	psize = c_pow (1, self->scale);
@@ -933,7 +962,7 @@ draw_screen_background (cairo_t                 *cr,
 	int blkx = 0;
 	int blky = 0;
 
-	int max = SCREEN_SIZE;
+	int max = NES_SCREEN_SIZE;
 
   for (cyy = 0; cyy < 24; cyy++) {
 		int mx = 0;
@@ -942,6 +971,34 @@ draw_screen_background (cairo_t                 *cr,
 			int nx = 0;
 			int ny = 0;
 			int index_ref = cyy * 32 + cxx;
+
+			int blockx = cxx / 4;
+			int blocky = cyy / 4;
+			int ccx = cxx - blockx * 4;
+			int ccy = cyy - blocky * 4;
+			ccx = ccx / 2;
+			ccy = ccy / 2;
+			guint8 pal = ccy * 2 + ccx;
+
+			guint8 *meg = &self->megatile[blocky * 8 + blockx];
+
+			guint8 check_pal = 0xc0;
+			for (int i = 0; i < 4; i++) {
+				if (pal == i)
+					break;
+				check_pal >>= 2;
+			}
+
+			guint8 cp = *meg & check_pal;
+			guint8 pal_offset[4] = {
+					6,
+					4,
+					2,
+					0
+				};
+
+			cp >>= pal_offset[pal];
+
 			if (self->tile_ref[index_ref].tilex >= 0 &&
 					self->tile_ref[index_ref].tiley >= 0) {
 				for (ny = 0; ny < 8; ) {
@@ -954,15 +1011,13 @@ draw_screen_background (cairo_t                 *cr,
 
 						if (p->index > 0) {
 							guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
-							guint32 *indexed_colour = global_nes_palette_get_memory_index (0);
+
+							guint32 *indexed_colour = global_nes_palette_get_memory_index (cp);
 
   						double r, g, b;
   						colour_rgb_get_double_color (colours[indexed_colour[p->index - 1]], &r, &g, &b);
   						cairo_set_source_rgb (cr, r, g, b);
 
-							/*
-							 * TODO: fix this
-							 */
   						cairo_rectangle (cr, 
 									self->px + cxx * 8 * c_pow (1, self->scale) + mx + offsetx + blkx, 
 									self->py + cyy * 8 * c_pow (1, self->scale) + my + offsety + blky,
@@ -982,7 +1037,7 @@ draw_screen_background (cairo_t                 *cr,
 				my = 0;
 				blkx += 1;
 			}
-			offsetx++;
+			//offsetx++;
 		}
 		offsetx = 1;
 		blkx = 0;
@@ -1509,6 +1564,59 @@ clear_tile_selection (RetroCanvas *self)
 }
 
 static void
+calculate_megatile (RetroCanvas *self, int gx, int gy)
+{
+	self->mx = gx;
+	self->my = gy;
+	int x, y;
+	x = y = 0;
+	calculate_last_block_and_point (self, &x, &y);
+
+	self->last_blockx /= 4 % 8;
+	self->last_blocky /= 4 % 7;
+}
+
+static void
+set_palette_megatile (RetroCanvas *self)
+{
+	guint32 mega_palettes[] = {
+		0xc0,
+		0x30,
+		0x0c,
+		0x03
+	};
+
+	int indx = self->last_blocky * 8 + self->last_blockx;
+	int offset = 6;
+	for (int i = 0; i < 4; i++) {
+		GtkWidget *frame = nes_screen_background_get_frame_megatile (i);
+		GtkWidget *canvas = nes_frame_megatile_get_canvas (NES_FRAME_MEGATILE (frame));
+
+		guint8 palette = ((mega_palettes[i] & self->megatile[indx]) >> offset);
+
+		guint32 *index_colour = global_nes_palette_get_memory_index (palette);
+		retro_canvas_set_index_colours (RETRO_CANVAS (canvas), index_colour);
+		gtk_widget_queue_draw (GTK_WIDGET (canvas));
+
+		offset -= 2;
+	}
+}
+
+guint8 *
+retro_canvas_nes_get_megatile_by_block (RetroCanvas *self)
+{
+	int indx = self->last_blocky * 8 + self->last_blockx;
+
+	return &self->megatile[indx];
+}
+
+guint8 *
+retro_canvas_get_megatile (RetroCanvas *self)
+{
+	return self->megatile;
+}
+
+static void
 mouse_hit_canvas_press (GtkGestureClick *evt,
          gint             n_press,
          gdouble          x,
@@ -1540,6 +1648,10 @@ mouse_hit_canvas_press (GtkGestureClick *evt,
 				self->first_tile_y = -1;
 				break;
 			case INDX_TOOL_COPY_TILE_DST:
+				break;
+			case INDX_TOOL_NES_MEGATILE:
+				calculate_megatile (self, x, y);
+				set_palette_megatile (self);
 				break;
 		}
 
@@ -1573,8 +1685,10 @@ retro_canvas_init (RetroCanvas *self)
   self->drawing_tool = FALSE;
   self->show_hex_index = FALSE;
 
-	self->tile_ref = g_malloc0 (SCREEN_SIZE * sizeof (guint32) * sizeof (guint32));
-	for (guint32 i = 0; i < SCREEN_SIZE; i++) {
+	self->megatile = g_malloc0 (sizeof (guint8) * NES_MEGATILE_COUNT);
+
+	self->tile_ref = g_malloc0 (NES_SCREEN_SIZE * sizeof (guint32) * sizeof (guint32));
+	for (guint32 i = 0; i < NES_SCREEN_SIZE; i++) {
 		self->tile_ref[i].tilex = -1;
 		self->tile_ref[i].tiley = -1;
 	}

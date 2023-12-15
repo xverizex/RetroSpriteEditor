@@ -30,6 +30,7 @@ struct _NesFrameMegatile
 {
   GtkFrame  parent_instance;
 
+	guint32 id;
 	GtkWidget *box_main;
 	GtkWidget *canvas;
 	RetroCanvas *cnvs[4];
@@ -55,11 +56,50 @@ canvas_activated_row (GtkListBox *box,
 
 	retro_canvas_set_index_colours (RETRO_CANVAS (self->canvas), index_color);
 	gtk_widget_queue_draw (GTK_WIDGET (self->canvas));
+
+	GtkWidget *screen = retro_canvas_nes_get_screen ();
+	guint8 *megatile = retro_canvas_nes_get_megatile_by_block (RETRO_CANVAS (screen));
+
+	guint8 m[] = {
+		0x03,
+		0x0c,
+		0x30,
+		0xc0,
+	};
+
+	guint8 and[] = {
+		0xfc,
+		0xf3,
+		0xcf,
+		0x3f
+	};
+
+	int offset = 6;
+	for (int i = 0; i < 4; i++) {
+		if (i == self->id) {
+			guint8 pal = index << offset;
+			guint8 xor_pal = pal ^ pal;
+			*megatile &= xor_pal;
+			*megatile |= pal;
+			break;
+		}
+		offset -= 2;
+	}
+
+	gtk_widget_queue_draw (GTK_WIDGET (screen));
+}
+
+GtkWidget *
+nes_frame_megatile_get_canvas (NesFrameMegatile *self)
+{
+	return self->canvas;
 }
 
 static void
 nes_frame_megatile_init (NesFrameMegatile *self)
 {
+	static int id = 0;
+	self->id = id++;
 	CanvasSettings cs_palette;
   cs_palette.type_canvas    = TYPE_CANVAS_COLOUR_PALETTE;
   cs_palette.canvas_width   = 32 * 4;

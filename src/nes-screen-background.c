@@ -40,6 +40,7 @@ struct _NesScreenBackground
 	GtkWidget   *frame_tools;
 	GtkWidget   *grid_tools;
 	GtkWidget   *tool_copy;
+	GtkWidget   *tool_megatile;
 };
 
 G_DEFINE_FINAL_TYPE (NesScreenBackground, nes_screen_background, GTK_TYPE_WINDOW)
@@ -48,6 +49,21 @@ static void
 nes_screen_background_class_init (NesScreenBackgroundClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+}
+
+static void
+toggled_tool_megatile (GtkToggleButton *source, gpointer user_data)
+{
+	NesScreenBackground *self = NES_SCREEN_BACKGROUND (user_data);
+
+	gboolean is = gtk_toggle_button_get_active (source);
+
+	guint32 type_tool = tool_button_get_type_index (TOOL_BUTTON (self->tool_copy));
+
+	if (is) {
+		retro_canvas_set_tool (RETRO_CANVAS (self->background), 0);
+		retro_canvas_set_tool (RETRO_CANVAS (self->screen), INDX_TOOL_NES_MEGATILE);
+	}
 }
 
 static void
@@ -65,9 +81,19 @@ toggled_tool_copy (GtkToggleButton *source, gpointer user_data)
 	}
 }
 
+static NesScreenBackground *global;
+
+GtkWidget *
+nes_screen_background_get_frame_megatile (guint32 indx)
+{
+	return global->frame_megatile[indx];
+}
+
+
 static void
 nes_screen_background_init (NesScreenBackground *self)
 {
+	global = self;
 	gtk_window_set_hide_on_close (GTK_WINDOW (self), TRUE);
 
 	self->background = g_object_new (RETRO_TYPE_CANVAS,
@@ -81,6 +107,8 @@ nes_screen_background_init (NesScreenBackground *self)
 	guint32 *idx_colour = global_nes_palette_get_memory_index (0);
 	retro_canvas_set_index_colours (RETRO_CANVAS (self->background), idx_colour);
 	retro_canvas_set_index_colours (RETRO_CANVAS (self->screen), idx_colour);
+
+	retro_canvas_nes_set_screen (RETRO_CANVAS (self->screen));
 
 	GtkWidget *scroll_background = gtk_scrolled_window_new ();
 	GtkWidget *scroll_screen = gtk_scrolled_window_new ();
@@ -171,14 +199,24 @@ nes_screen_background_init (NesScreenBackground *self)
 	self->grid_tools = gtk_grid_new ();
 
 	self->tool_copy = g_object_new (TOOL_TYPE_COPY_TILE, "label", "copy", NULL);
+	self->tool_megatile = g_object_new (TOOL_TYPE_COPY_TILE, "label", "megatile", NULL);
 
 	gtk_grid_attach (GTK_GRID (self->grid_tools),
 			self->tool_copy,
 			0, 0,
 			1, 1);
 
+	gtk_grid_attach (GTK_GRID (self->grid_tools),
+			self->tool_megatile,
+			1, 0,
+			1, 1);
+
+	gtk_toggle_button_set_group (GTK_TOGGLE_BUTTON (self->tool_copy),
+			GTK_TOGGLE_BUTTON (self->tool_megatile));
+
 	gtk_frame_set_child (GTK_FRAME (self->frame_tools), self->grid_tools);
 	gtk_box_append (GTK_BOX (self->box_info), self->frame_tools);
 
 	g_signal_connect (self->tool_copy, "toggled", G_CALLBACK (toggled_tool_copy), self);
+	g_signal_connect (self->tool_megatile, "toggled", G_CALLBACK (toggled_tool_megatile), self);
 }
