@@ -42,6 +42,8 @@ struct _NesPalette
   GtkWidget *frame_list_items_palette;
   GtkWidget *frame_current_palette;
 	GtkWidget *window_screen;
+	GtkWidget *box_for_background;
+	GtkWidget *btn_setup_screen;
 
   guint32 cur_palette;
   guint32 count_sprite_x;
@@ -79,6 +81,14 @@ nes_palette_class_init (NesPaletteClass *klass)
 }
 
 static void
+click_setup_screen (GtkButton *btn, gpointer user_data)
+{
+	NesPalette *self = NES_PALETTE (user_data);	
+
+	gtk_window_present (GTK_WINDOW (self->window_screen));
+}
+
+static void
 bank_memory_activate0 (GtkCheckButton *btn,
                        gpointer        data)
 {
@@ -92,6 +102,8 @@ bank_memory_activate0 (GtkCheckButton *btn,
   sets.width_rect   = 8;
   sets.height_rect  = 8;
   sets.left_top      = TRUE;
+
+	gtk_widget_set_visible (GTK_WIDGET (self->box_for_background), FALSE);
 
   self->cur_width_rect = sets.width_rect;
   self->cur_heigh_rect = sets.height_rect;
@@ -141,6 +153,8 @@ bank_memory_activate1 (GtkCheckButton *btn,
   sets.width_rect   =  8;
   sets.height_rect  =  8;
   sets.left_top      = TRUE;
+
+	gtk_widget_set_visible (GTK_WIDGET (self->box_for_background), TRUE);
 
   self->cur_palette = NES_BACKGROUND;
 
@@ -284,6 +298,13 @@ nes_palette_init (NesPalette *self)
   }
   retro_canvas_set_index_colours (RETRO_CANVAS (self->colours), index_color);
 
+	self->box_for_background = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
+	self->btn_setup_screen = gtk_button_new_with_label ("SETUP SCREEN");
+	gtk_box_append (GTK_BOX (self->box_for_background), self->btn_setup_screen);
+	g_signal_connect (self->btn_setup_screen, "clicked", G_CALLBACK (click_setup_screen), self);
+
+	gtk_box_append (GTK_BOX (self), self->box_for_background);
+	gtk_widget_set_visible (GTK_WIDGET (self->box_for_background), FALSE);
 
   gtk_widget_set_size_request (self->tileset, 256, 256);
   gtk_box_append (GTK_BOX (self), self->frame_tileset);
@@ -330,7 +351,6 @@ nes_palette_init (NesPalette *self)
   gtk_box_append (GTK_BOX (self), self->frame_current_palette);
 
 	self->window_screen = g_object_new (NES_TYPE_SCREEN_BACKGROUND, NULL);
-	gtk_window_present (GTK_WINDOW (self->window_screen));
 }
 
 NesPalette *

@@ -78,8 +78,20 @@ canvas_activated_row (GtkListBox *box,
 	for (int i = 0; i < 4; i++) {
 		if (i == self->id) {
 			guint8 pal = index << offset;
-			guint8 xor_pal = pal ^ pal;
-			*megatile &= xor_pal;
+			switch (self->id) {
+				case 0:
+					*megatile &= 0x3f;
+					break;
+				case 1:
+					*megatile &= 0xcf;
+					break;
+				case 2:
+					*megatile &= 0xf3;
+					break;
+				case 3:
+					*megatile &= 0xfc;
+					break;
+			}
 			*megatile |= pal;
 			break;
 		}
