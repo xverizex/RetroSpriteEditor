@@ -564,7 +564,7 @@ export_to_ca65 (void)
 	guint32 *c3 = global_nes_palette_get_memory_index (3);
 
 	int n = 0;
-	gchar *data = g_malloc0 (4096);
+	gchar *data = g_malloc0 (16384);
 	snprintf (data,
 			4096,
 			"; save to 0 palette.\n"
@@ -640,7 +640,7 @@ export_to_ca65 (void)
 				int tile = tile_ref[i].tiley * 32 + tile_ref[i].tilex;
 				guint8 a0 = (addr & 0xff00) >> 8;
 				guint8 a1 = (addr & 0x00ff) >> 0;
-				snprintf (s, 64, 
+				snprintf (s, 256, 
 						"\tLDA #$%x\n"
 						"\tSTA $2006\n"
 						"\tLDA #$%x\n"
