@@ -13,3 +13,6 @@ Draw your sprites and backgrounds with this program specially designed for retro
 * 4 palettes to choose from, which can be customized.
 * two memory banks for sprites and backgrounds.
 * showing the color index numbers.
+
+## Donate
+* [Donation Alerts](https://www.donationalerts.com/r/xverizex)
