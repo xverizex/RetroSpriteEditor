@@ -18,6 +18,11 @@
 		</screenshot>
 	</screenshots>
 	<releases>
+		<release date="2023-12-17" version="0.2.6">
+			<description>
+				<p>Fixed exporting to asm code.</p>
+			</description>
+		</release>
 		<release date="2023-12-15" version="0.2.4">
 			<description>
 				<p>Added feature to clear tiles on screen.</p>
