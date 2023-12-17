@@ -38,6 +38,7 @@ struct _NesScreenBackground
 	RetroCanvas *background;
 	RetroCanvas *screen;
 	GtkWidget   **screens;
+	GtkWidget   **scrolls;
 	GtkWidget   *box_main;
 	GtkWidget   *frame_megatile[4];
 	GtkWidget   *grid_megatiles;
@@ -186,6 +187,12 @@ create_new_screen (NesScreenBackground *self)
 
 	GtkWidget **temp = NULL;
 	int index = self->count++;
+	temp = realloc (self->scrolls, sizeof (GtkWidget *) * self->count);
+	if (temp) {
+		self->scrolls = temp;
+		self->scrolls[index] = scroll_screen;
+	}
+
 	temp = realloc (self->screens, sizeof (GtkWidget *) * self->count);
 	if (temp) {
 		self->screens = temp;
@@ -195,6 +202,44 @@ create_new_screen (NesScreenBackground *self)
 	set_tool_for_all_screen_by_own (self);
 	global_set_screen_count (self->count);
 	global_set_screens (self->screens);
+}
+
+static void
+remove_current_screen (NesScreenBackground *self)
+{
+	int page = global_nes_get_cur_screen ();
+
+	gtk_notebook_remove_page (GTK_NOTEBOOK (self->notebook_screen), page);
+
+	if (page < self->count) {
+		for (int i = page; i < (self->count - 1); i++) {
+			self->scrolls[i + 0] = self->scrolls[i + 1];
+			self->screens[i + 0] = self->screens[i + 1];
+		}
+	}
+
+	self->count--;
+	if (self->count < 0) {
+		self->count = 0;
+	}
+
+	global_set_screen_count (self->count);
+	global_set_screens (self->screens);
+
+	for (int i = 0; i < self->count; i++) {
+		char label[512];
+		snprintf (label, 512, "screen_%d", i);
+		gtk_notebook_set_tab_label_text (GTK_NOTEBOOK (self->notebook_screen),
+				self->scrolls[i],
+				label);
+	}
+}
+
+static void
+remove_screen (GtkButton *btn, gpointer user_data)
+{
+	NesScreenBackground *self = NES_SCREEN_BACKGROUND (user_data);
+	remove_current_screen (self);
 }
 
 static void
@@ -243,6 +288,7 @@ nes_screen_background_init (NesScreenBackground *self)
 	global = self;
 	self->count = 0;
 	self->screens = NULL;
+	self->scrolls = NULL;
 	gtk_window_set_hide_on_close (GTK_WINDOW (self), TRUE);
 
 	self->background = g_object_new (RETRO_TYPE_CANVAS,
@@ -299,6 +345,7 @@ nes_screen_background_init (NesScreenBackground *self)
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (self->notebook_screen), TRUE);
 
 	g_signal_connect (self->btn_add_screen, "clicked", G_CALLBACK (add_screen), self);
+	g_signal_connect (self->btn_remove_screen, "clicked", G_CALLBACK (remove_screen), self);
 
 	gtk_box_append (GTK_BOX (self->box_main), self->box_notebook);
 	//gtk_box_append (GTK_BOX (self->box_main), scroll_screen);
