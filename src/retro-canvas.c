@@ -120,6 +120,12 @@ retro_canvas_screen_nes_get_megatile ()
 }
 
 void *
+retro_canvas_nes_get_tile_ref (RetroCanvas *self)
+{
+	return self->tile_ref;
+}
+
+void *
 retro_canvas_screen_nes_get_tile_ref ()
 {
 	return global_drawing_canvas_screen->tile_ref;
@@ -1676,6 +1682,12 @@ retro_canvas_nes_get_megatile_by_block (RetroCanvas *self)
 	int indx = self->last_blocky * 8 + self->last_blockx;
 
 	return &self->megatile[indx];
+}
+
+guint8 *
+retro_canvas_nes_get_megatile (RetroCanvas *self)
+{
+	return self->megatile;
 }
 
 guint8 *

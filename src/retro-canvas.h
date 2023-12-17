@@ -142,3 +142,9 @@ retro_canvas_nes_get_screen (void);
 
 void *
 retro_canvas_screen_nes_get_tile_ref (void);
+
+void *
+retro_canvas_nes_get_tile_ref (RetroCanvas *self);
+
+guint8 *
+retro_canvas_nes_get_megatile (RetroCanvas *self);

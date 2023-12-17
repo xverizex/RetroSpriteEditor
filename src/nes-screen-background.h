@@ -32,3 +32,6 @@ G_END_DECLS
 
 GtkWidget *
 nes_screen_background_get_frame_megatile (guint32 indx);
+
+void
+nes_screen_background_create_tabs_screen (void);

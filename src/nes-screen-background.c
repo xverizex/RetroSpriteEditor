@@ -31,9 +31,13 @@
 struct _NesScreenBackground
 {
   GtkWindow  parent_instance;
+	gint        count;
 
+	guint32  		cur_tool_back;
+	guint32     cur_tool_screen;
 	RetroCanvas *background;
 	RetroCanvas *screen;
+	GtkWidget   **screens;
 	GtkWidget   *box_main;
 	GtkWidget   *frame_megatile[4];
 	GtkWidget   *grid_megatiles;
@@ -45,6 +49,11 @@ struct _NesScreenBackground
 	GtkWidget   *tool_megatile;
 	GtkWidget   *tool_clear;
 	GtkWidget   *btn_export;
+	GtkWidget   *notebook_screen;
+	GtkWidget   *box_notebook;
+	GtkWidget   *btn_add_screen;
+	GtkWidget   *btn_remove_screen;
+	GtkWidget   *box_btn_screen;
 };
 
 G_DEFINE_FINAL_TYPE (NesScreenBackground, nes_screen_background, GTK_TYPE_WINDOW)
@@ -53,6 +62,28 @@ static void
 nes_screen_background_class_init (NesScreenBackgroundClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+}
+
+static void
+set_tool_for_all_screen_by_own (NesScreenBackground *self)
+{
+	retro_canvas_set_tool (RETRO_CANVAS (self->background), self->cur_tool_back);
+	for (int i = 0; i < self->count; i++) {
+		retro_canvas_set_tool (RETRO_CANVAS (self->screens[i]), self->cur_tool_screen);
+	}
+}
+
+static void
+set_tool_for_all_screen (NesScreenBackground *self, guint32 type_tool, guint32 screen_tool)
+{
+	self->cur_tool_back = type_tool;
+	self->cur_tool_screen = screen_tool;
+
+	retro_canvas_set_tool (RETRO_CANVAS (self->background), type_tool);
+
+	for (int i = 0; i < self->count; i++) {
+		retro_canvas_set_tool (RETRO_CANVAS (self->screens[i]), screen_tool);
+	}
 }
 
 static void
@@ -65,8 +96,7 @@ toggled_tool_clear (GtkToggleButton *source, gpointer user_data)
 	guint32 type_tool = tool_button_get_type_index (TOOL_BUTTON (self->tool_clear));
 
 	if (is) {
-		retro_canvas_set_tool (RETRO_CANVAS (self->background), 0);
-		retro_canvas_set_tool (RETRO_CANVAS (self->screen), INDX_TOOL_CLEAR_TILE);
+		set_tool_for_all_screen (self, 0, INDX_TOOL_CLEAR_TILE);
 	}
 }
 
@@ -80,10 +110,10 @@ toggled_tool_megatile (GtkToggleButton *source, gpointer user_data)
 	guint32 type_tool = tool_button_get_type_index (TOOL_BUTTON (self->tool_copy));
 
 	if (is) {
-		retro_canvas_set_tool (RETRO_CANVAS (self->background), 0);
-		retro_canvas_set_tool (RETRO_CANVAS (self->screen), INDX_TOOL_NES_MEGATILE);
+		set_tool_for_all_screen (self, 0, INDX_TOOL_NES_MEGATILE);
 	}
 }
+
 
 static void
 toggled_tool_copy (GtkToggleButton *source, gpointer user_data)
@@ -95,8 +125,7 @@ toggled_tool_copy (GtkToggleButton *source, gpointer user_data)
 	guint32 type_tool = tool_button_get_type_index (TOOL_BUTTON (self->tool_copy));
 
 	if (is) {
-		retro_canvas_set_tool (RETRO_CANVAS (self->background), type_tool);
-		retro_canvas_set_tool (RETRO_CANVAS (self->screen), INDX_TOOL_COPY_TILE_DST);
+		set_tool_for_all_screen (self, type_tool, INDX_TOOL_COPY_TILE_DST);
 	}
 }
 
@@ -115,14 +144,108 @@ export_click (GtkButton *btn, gpointer user_data)
 }
 
 static void
+create_new_screen (NesScreenBackground *self)
+{
+	GtkWidget *screen = g_object_new (RETRO_TYPE_CANVAS,
+			NULL);
+
+	GtkWidget *scroll_screen = gtk_scrolled_window_new ();
+	gtk_widget_set_hexpand (scroll_screen, TRUE);
+	gtk_widget_set_vexpand (scroll_screen, TRUE);
+
+	gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll_screen),
+			GTK_WIDGET (screen));
+
+	gtk_widget_set_size_request (GTK_WIDGET (scroll_screen), 256, 240);
+
+	guint32 *idx_colour = global_nes_palette_get_memory_index (0);
+	retro_canvas_set_index_colours (RETRO_CANVAS (screen), idx_colour);
+
+	CanvasSettings screen_cs;
+	screen_cs.type_canvas = TYPE_CANVAS_SCREEN_BACKGROUND;
+	screen_cs.canvas_width = 256;
+	screen_cs.canvas_height = 240;
+	screen_cs.palette_type = global_type_palette_get_cur_platform ();
+	screen_cs.width_rect = 8;
+	screen_cs.height_rect = 8;
+	screen_cs.scale = 2;
+	screen_cs.count_x = 1;
+	screen_cs.count_y = 1;
+	screen_cs.left_top = FALSE;
+	g_object_set (screen, "settings", &screen_cs, NULL);
+
+	retro_canvas_shut_on_events_nes_screen (RETRO_CANVAS (screen));
+
+	gchar *title = g_strdup_printf ("screen_%d", self->count);
+	GtkWidget *label = gtk_label_new (title);
+	g_free (title);
+
+	gtk_notebook_append_page (GTK_NOTEBOOK (self->notebook_screen),
+			scroll_screen,
+			label);
+
+	GtkWidget **temp = NULL;
+	int index = self->count++;
+	temp = realloc (self->screens, sizeof (GtkWidget *) * self->count);
+	if (temp) {
+		self->screens = temp;
+		self->screens[index] = screen;
+	}
+
+	set_tool_for_all_screen_by_own (self);
+	global_set_screen_count (self->count);
+	global_set_screens (self->screens);
+}
+
+static void
+add_screen (GtkButton *btn, gpointer user_data)
+{
+	NesScreenBackground *self = NES_SCREEN_BACKGROUND (user_data);
+	create_new_screen (self);
+}
+
+void
+nes_screen_background_create_tabs_screen ()
+{
+	int max = global_get_screen_count ();
+	for (int i = 0; i < max; i++) {
+		create_new_screen (global);
+	}
+}
+
+static gboolean 
+screen_select_page (GtkNotebook *note,
+		gboolean object,
+		gpointer user_data)
+{
+	NesScreenBackground *self = NES_SCREEN_BACKGROUND (user_data);
+	int page = gtk_notebook_get_current_page (GTK_NOTEBOOK (self->notebook_screen));
+
+	global_nes_set_cur_screen (page);
+
+	return TRUE;
+}
+
+static void
+screen_switch_page (GtkNotebook *note,
+		GtkWidget *page,
+		guint page_num,
+		gpointer user_data)
+{
+	NesScreenBackground *self = NES_SCREEN_BACKGROUND (user_data);
+
+	global_nes_set_cur_screen (page_num);
+}
+
+static void
 nes_screen_background_init (NesScreenBackground *self)
 {
 	global = self;
+	self->count = 0;
+	self->screens = NULL;
 	gtk_window_set_hide_on_close (GTK_WINDOW (self), TRUE);
 
 	self->background = g_object_new (RETRO_TYPE_CANVAS,
-			NULL);
-	self->screen = g_object_new (RETRO_TYPE_CANVAS,
 			NULL);
 
 	self->box_info = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
@@ -130,24 +253,17 @@ nes_screen_background_init (NesScreenBackground *self)
 
 	guint32 *idx_colour = global_nes_palette_get_memory_index (0);
 	retro_canvas_set_index_colours (RETRO_CANVAS (self->background), idx_colour);
-	retro_canvas_set_index_colours (RETRO_CANVAS (self->screen), idx_colour);
 
 	retro_canvas_nes_set_screen (RETRO_CANVAS (self->screen));
 
 	GtkWidget *scroll_background = gtk_scrolled_window_new ();
-	GtkWidget *scroll_screen = gtk_scrolled_window_new ();
 	gtk_widget_set_hexpand (scroll_background, TRUE);
 	gtk_widget_set_vexpand (scroll_background, TRUE);
-	gtk_widget_set_hexpand (scroll_screen, TRUE);
-	gtk_widget_set_vexpand (scroll_screen, TRUE);
 
 	gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll_background),
 			GTK_WIDGET (self->background));
-	gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll_screen),
-			GTK_WIDGET (self->screen));
 
 	gtk_widget_set_size_request (GTK_WIDGET (scroll_background), 128, 128);
-	gtk_widget_set_size_request (GTK_WIDGET (scroll_screen), 256, 240);
 
 	CanvasSettings back_cs;
 	back_cs.type_canvas = TYPE_CANVAS_TILESET;
@@ -162,22 +278,30 @@ nes_screen_background_init (NesScreenBackground *self)
 	back_cs.left_top = FALSE;
 	g_object_set (self->background, "settings", &back_cs, NULL);
 
-	CanvasSettings screen_cs;
-	screen_cs.type_canvas = TYPE_CANVAS_SCREEN_BACKGROUND;
-	screen_cs.canvas_width = 256;
-	screen_cs.canvas_height = 240;
-	screen_cs.palette_type = global_type_palette_get_cur_platform ();
-	screen_cs.width_rect = 8;
-	screen_cs.height_rect = 8;
-	screen_cs.scale = 2;
-	screen_cs.count_x = 1;
-	screen_cs.count_y = 1;
-	screen_cs.left_top = FALSE;
-	g_object_set (self->screen, "settings", &screen_cs, NULL);
 
 	self->box_main = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
 	gtk_box_append (GTK_BOX (self->box_main), scroll_background);
-	gtk_box_append (GTK_BOX (self->box_main), scroll_screen);
+
+	self->notebook_screen = gtk_notebook_new ();
+	g_signal_connect (self->notebook_screen, "select-page", G_CALLBACK (screen_select_page), self);
+	g_signal_connect (self->notebook_screen, "switch-page", G_CALLBACK (screen_switch_page), self);
+	self->box_notebook = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
+	self->btn_add_screen = gtk_button_new_with_label ("ADD");
+	self->btn_remove_screen = gtk_button_new_with_label ("REMOVE");
+	self->box_btn_screen = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
+	gtk_box_append (GTK_BOX (self->box_btn_screen), self->btn_add_screen);
+	gtk_box_append (GTK_BOX (self->box_btn_screen), self->btn_remove_screen);
+	gtk_box_append (GTK_BOX (self->box_notebook), self->box_btn_screen);
+	gtk_box_append (GTK_BOX (self->box_notebook), self->notebook_screen);
+
+
+	gtk_widget_set_size_request (GTK_WIDGET (self->notebook_screen), 400, 400);
+	gtk_notebook_set_scrollable (GTK_NOTEBOOK (self->notebook_screen), TRUE);
+
+	g_signal_connect (self->btn_add_screen, "clicked", G_CALLBACK (add_screen), self);
+
+	gtk_box_append (GTK_BOX (self->box_main), self->box_notebook);
+	//gtk_box_append (GTK_BOX (self->box_main), scroll_screen);
 
 	char *labels_frame[] = {
 		"Left Top",
@@ -212,10 +336,8 @@ nes_screen_background_init (NesScreenBackground *self)
 	gtk_window_set_child (GTK_WINDOW (self), self->box_main);
 
 	retro_canvas_shut_on_events_nes_screen (RETRO_CANVAS (self->background));
-	retro_canvas_shut_on_events_nes_screen (RETRO_CANVAS (self->screen));
 
 	retro_canvas_set_copy (RETRO_CANVAS (self->background), 1);
-
 
 	gtk_window_set_default_size (GTK_WINDOW (self), 1280, 720);
 

@@ -57,7 +57,8 @@ canvas_activated_row (GtkListBox *box,
 	retro_canvas_set_index_colours (RETRO_CANVAS (self->canvas), index_color);
 	gtk_widget_queue_draw (GTK_WIDGET (self->canvas));
 
-	GtkWidget *screen = retro_canvas_nes_get_screen ();
+	int indx = global_nes_get_cur_screen ();
+	GtkWidget *screen = global_get_screen (indx);
 	guint8 *megatile = retro_canvas_nes_get_megatile_by_block (RETRO_CANVAS (screen));
 
 	guint8 m[] = {

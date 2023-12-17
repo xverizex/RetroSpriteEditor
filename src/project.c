@@ -84,10 +84,10 @@ write_header (xmlTextWriterPtr *writ)
 		prj->name_screen = g_strdup ("screen");
 	}
 	xmlTextWriterPtr writer = *writ;
-	gchar screen_palettes[512];
-	gchar screen_ref[512];
-	snprintf (screen_palettes, 512, "%s/%s.palettes", prj->folder_path, prj->name_screen);
-	snprintf (screen_ref, 512, "%s/%s.ref", prj->folder_path, prj->name_screen);
+
+	char str_count[33];
+	int count_screen = global_get_screen_count ();
+	snprintf (str_count ,32,"%d", count_screen);
 
 	writer = xmlNewTextWriterFilename (prj->fullpath_to_project, 0);
 	xmlTextWriterStartDocument (writer, NULL, "UTF-8", NULL);
@@ -98,6 +98,7 @@ write_header (xmlTextWriterPtr *writ)
 			xmlTextWriterWriteElement (writer, "project_folder", prj->folder_path);
 			xmlTextWriterWriteElement (writer, "screen", prj->name_screen);
 			xmlTextWriterWriteElement (writer, "fullpath", prj->fullpath_to_project);
+			xmlTextWriterWriteElement (writer, "count_screen", str_count);
 	xmlTextWriterEndElement (writer);
 	xmlTextWriterStartElement (writer, "ExportSettings");
 			xmlTextWriterWriteElement (writer, "outfile", prj->file_to_export);
@@ -166,7 +167,7 @@ static void
 check_and_write (const xmlChar *name, char *sname, const xmlChar *value, void **v, int type)
 {
 	char *v0 = NULL;
-	int  v1 = 0;
+	int  *v1 = 0;
 	if (strncmp (name, sname, strlen (sname) + 1))
 		return;
 
@@ -176,8 +177,9 @@ check_and_write (const xmlChar *name, char *sname, const xmlChar *value, void **
 			*v = v0;
 			break;
 		case TYPE_INT:
-			v1 = atoi (value);
-			*v = &v1;
+			v1 = g_malloc0 (sizeof (gint32));
+			*v1 = atoi (value);
+			*v = v1;
 			break;
 	}
 }
@@ -185,11 +187,20 @@ check_and_write (const xmlChar *name, char *sname, const xmlChar *value, void **
 static void
 handle_nes_name_value (const xmlChar *name, const xmlChar *value)
 {
+	int *count_screen = NULL;
+
 	check_and_write (name, "project_name", value, (void **) &prj->name, TYPE_STRING);
 	check_and_write (name, "project_folder", value, (void **) &prj->folder_path, TYPE_STRING);
 	check_and_write (name, "fullpath", value, (void **) &prj->fullpath_to_project, TYPE_STRING);
 	check_and_write (name, "outfile", value, (void **) &prj->file_to_export, TYPE_STRING);
 	check_and_write (name, "screen", value, (void **) &prj->name_screen, TYPE_STRING);
+	check_and_write (name, "count_screen", value, (void **) &count_screen, TYPE_INT);
+
+	if (count_screen) {
+		global_set_screen_count (*count_screen);
+		g_free (count_screen);
+	}
+
 	if (!strncmp (name, "p00", 4)) {
 		unsigned int val = atoi (value);
 		prj->nes.nes_p0[prj->nes.nes_pal][prj->nes.nes_np0++] = val;
@@ -363,6 +374,7 @@ project_open_nes (char *filepath)
 	}
 
 	read_tilemap_and_set_nes ();
+	global_nes_create_screens ();
 	open_nes_ref ();
 	open_nes_screen_palettes ();
 }
@@ -403,55 +415,66 @@ write_nes_palettes (xmlTextWriterPtr writer)
 static void
 open_nes_ref ()
 {
-	gchar screen_ref[512];
-	snprintf (screen_ref, 512, "%s/%s.ref", prj->folder_path, prj->name_screen);
-	GFile *file_ref = g_file_new_for_path (screen_ref);
+	int max_refs = global_get_screen_count ();
 
-	if (!g_file_query_exists (file_ref, NULL)) {
-		return;
-	}
-	GFileInputStream *in = NULL;
-	in = g_file_read (file_ref,
+	for (int indx = 0; indx < max_refs; indx++) {
+		gchar screen_ref[512];
+		snprintf (screen_ref, 512, "%s/%s_%d.ref", prj->folder_path, prj->name_screen, indx);
+		GFile *file_ref = g_file_new_for_path (screen_ref);
+
+		if (!g_file_query_exists (file_ref, NULL)) {
+			return;
+		}
+		GFileInputStream *in = NULL;
+		in = g_file_read (file_ref,
 			NULL,
 			NULL
 			);
 
-	TileRef *tile = retro_canvas_screen_nes_get_tile_ref ();
-	int screen_size = 32 * 28;
-	for (int i = 0; i < screen_size; i++) {
-		g_input_stream_read (G_INPUT_STREAM (in), &tile[i], sizeof (TileRef), NULL, NULL);
-	}
+		GtkWidget *screen = global_get_screen (indx);
+		TileRef *tile = retro_canvas_nes_get_tile_ref (RETRO_CANVAS (screen));
+		int screen_size = 32 * 30;
 
-	g_input_stream_close (G_INPUT_STREAM (in), NULL, NULL);
+		for (int i = 0; i < screen_size; i++) {
+			g_input_stream_read (G_INPUT_STREAM (in), &tile[i], sizeof (TileRef), NULL, NULL);
+		}
+
+		g_input_stream_close (G_INPUT_STREAM (in), NULL, NULL);
+	}
 }
 
 static void
 open_nes_screen_palettes ()
 {
-	gchar screen_palettes[512];
-	snprintf (screen_palettes, 512, "%s/%s.palettes", prj->folder_path, prj->name_screen);
+	int max_palettes = global_get_screen_count ();
 
-	GFile *file_ref = g_file_new_for_path (screen_palettes);
+	for (int indx = 0; indx < max_palettes; indx++) {
+		gchar screen_palettes[512];
+		snprintf (screen_palettes, 512, "%s/%s_%d.palettes", prj->folder_path, prj->name_screen, indx);
 
-	if (!g_file_query_exists (file_ref, NULL)) {
-		return;
-	}
-	GFileInputStream *in = NULL;
-	in = g_file_read (file_ref,
+		GFile *file_ref = g_file_new_for_path (screen_palettes);
+
+		if (!g_file_query_exists (file_ref, NULL)) {
+			return;
+		}
+		GFileInputStream *in = NULL;
+		in = g_file_read (file_ref,
 			NULL,
 			NULL
 			);
 
-	guint8 *tile = retro_canvas_screen_nes_get_megatile ();
-	int screen_size = 8 * 7;
-	for (int i = 0; i < screen_size; i++) {
-		g_input_stream_read (G_INPUT_STREAM (in), &tile[i], sizeof (guint8), NULL, NULL);
-	}
+		GtkWidget *screen = global_get_screen (indx);
+		guint8 *tile = retro_canvas_nes_get_megatile (RETRO_CANVAS (screen));
+		int screen_size = 8 * 8;
+		for (int i = 0; i < screen_size; i++) {
+			g_input_stream_read (G_INPUT_STREAM (in), &tile[i], sizeof (guint8), NULL, NULL);
+		}
 
-	g_input_stream_close (G_INPUT_STREAM (in), NULL, NULL);
+		g_input_stream_close (G_INPUT_STREAM (in), NULL, NULL);
+	}
 }
 static void
-save_nes_ref (gchar *screen_ref)
+save_nes_ref (guint32 indx, gchar *screen_ref)
 {
 	GFile *file_ref = g_file_new_for_path (screen_ref);
 
@@ -471,8 +494,11 @@ save_nes_ref (gchar *screen_ref)
 			);
 	}
 
-	TileRef *tile = retro_canvas_screen_nes_get_tile_ref ();
-	int screen_size = 32 * 28;
+	GtkWidget *screen = global_get_screen (indx);
+
+	TileRef *tile = retro_canvas_nes_get_tile_ref (RETRO_CANVAS (screen));
+	int screen_size = 32 * 30;
+
 	for (int i = 0; i < screen_size; i++) {
 		g_output_stream_write (G_OUTPUT_STREAM (out), &tile[i], sizeof (TileRef), NULL, NULL);
 	}
@@ -481,7 +507,7 @@ save_nes_ref (gchar *screen_ref)
 }
 
 static void
-save_nes_screen_palettes (gchar *screen_palette)
+save_nes_screen_palettes (guint32 indx, gchar *screen_palette)
 {
 	GFile *file_ref = g_file_new_for_path (screen_palette);
 
@@ -501,24 +527,31 @@ save_nes_screen_palettes (gchar *screen_palette)
 			);
 	}
 
-	guint8 *tile = retro_canvas_screen_nes_get_megatile ();
-	int screen_size = 8 * 7;
+	GtkWidget *screen = global_get_screen (indx);
+	guint8 *tile = retro_canvas_nes_get_megatile (RETRO_CANVAS (screen));
+	int screen_size = 8 * 8;
 	for (int i = 0; i < screen_size; i++) {
 		g_output_stream_write (G_OUTPUT_STREAM (out), &tile[i], sizeof (guint8), NULL, NULL);
 	}
 
 	g_output_stream_close (G_OUTPUT_STREAM (out), NULL, NULL);
 }
+
 static void
 write_nes_screen (xmlTextWriterPtr writer)
 {
 	gchar screen_palettes[512];
 	gchar screen_ref[512];
-	snprintf (screen_palettes, 512, "%s/%s.palettes", prj->folder_path, prj->name_screen);
-	snprintf (screen_ref, 512, "%s/%s.ref", prj->folder_path, prj->name_screen);
+
+	int count_screen = global_get_screen_count ();
+	for (int i = 0; i < count_screen; i++) {
+		snprintf (screen_palettes, 512, "%s/%s_%d.palettes", prj->folder_path, prj->name_screen, i);
+		snprintf (screen_ref, 512, "%s/%s_%d.ref", prj->folder_path, prj->name_screen, i);
 	
-	save_nes_ref (screen_ref);
-	save_nes_screen_palettes (screen_palettes);
+		save_nes_ref (i, screen_ref);
+		save_nes_screen_palettes (i, screen_palettes);
+	}
+	
 
 }
 
@@ -535,10 +568,10 @@ project_save_nes (void)
 }
 
 static void
-export_to_ca65 (void)
+export_to_screen_ca65 (guint32 screen_num)
 {
 	gchar path[512];
-	snprintf (path, 512, "%s/screen_ca65.s", prj->folder_path);
+	snprintf (path, 512, "%s/screen_%d_ca65.s", prj->folder_path, screen_num);
 
 	GFile *file = g_file_new_for_path (path);
 
@@ -570,9 +603,10 @@ export_to_ca65 (void)
 	snprintf (s,
 			512,
 			".segment \"CODE\"\n"
-			".proc load_screen\n"
+			".proc load_screen_%d\n"
 			"\n"
 			"%n",
+			screen_num,
 			&n);
 
 	s += n;
@@ -647,7 +681,9 @@ export_to_ca65 (void)
 
 		s += n;
 
-		TileRef *tile_ref = retro_canvas_screen_nes_get_tile_ref ();
+		GtkWidget *screen = global_get_screen (screen_num);
+
+		TileRef *tile_ref = retro_canvas_nes_get_tile_ref (RETRO_CANVAS (screen));
 		int screen_size = 32 * 30;
 
 		snprintf (s, 4096, 
@@ -780,7 +816,7 @@ export_to_ca65 (void)
 		 * save palettes megatiles
 		 */
 
-		guint8 *tile = retro_canvas_screen_nes_get_megatile ();
+		guint8 *tile = retro_canvas_nes_get_megatile (RETRO_CANVAS (screen));
 		int megatile_count = 8 * 8;
 		int indx = 0;
 		snprintf (s, 255,
@@ -806,6 +842,15 @@ export_to_ca65 (void)
 
 	g_output_stream_write (G_OUTPUT_STREAM (out), data, len_data, NULL, NULL);
 	g_output_stream_close (G_OUTPUT_STREAM (out), NULL, NULL);
+}
+
+static void
+export_to_ca65 (void)
+{
+	int count_screen = global_get_screen_count ();
+	for (int i = 0; i < count_screen; i++) {
+		export_to_screen_ca65 (i);
+	}
 }
 
 void

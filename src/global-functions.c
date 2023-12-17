@@ -5,6 +5,7 @@
 #include "nes-item-palette.h"
 #include "nes-palette.h"
 #include "nes-setup-palette.h"
+#include "nes-screen-background.h"
 
 static guint32 cur_platform;
 static guint32 cur_palette;
@@ -460,3 +461,51 @@ global_nes_palette_init_map (guint32 type)
 	}
 }
 
+static gint32 screen_count;
+void
+global_set_screen_count (gint32 count)
+{
+	if (count < 0)
+		count = 0;
+	screen_count = count;
+}
+
+int
+global_get_screen_count ()
+{
+	return screen_count;
+}
+
+static GtkWidget **screens;
+
+void
+global_set_screens (GtkWidget **scr)
+{
+	screens = scr;
+}
+
+GtkWidget *
+global_get_screen (guint32 indx)
+{
+	return screens[indx];
+}
+
+void
+global_nes_create_screens ()
+{
+	nes_screen_background_create_tabs_screen ();
+}
+
+static int cur_page;
+
+void
+global_nes_set_cur_screen (int indx)
+{
+	cur_page = indx;
+}
+
+int
+global_nes_get_cur_screen ()
+{
+	return cur_page;
+}
