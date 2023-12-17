@@ -165,7 +165,7 @@ nes_screen_background_init (NesScreenBackground *self)
 	CanvasSettings screen_cs;
 	screen_cs.type_canvas = TYPE_CANVAS_SCREEN_BACKGROUND;
 	screen_cs.canvas_width = 256;
-	screen_cs.canvas_height = 224;
+	screen_cs.canvas_height = 240;
 	screen_cs.palette_type = global_type_palette_get_cur_platform ();
 	screen_cs.width_rect = 8;
 	screen_cs.height_rect = 8;

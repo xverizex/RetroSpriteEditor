@@ -565,58 +565,75 @@ export_to_ca65 (void)
 
 	int n = 0;
 	gchar *data = g_malloc0 (16384);
-	snprintf (data,
+	gchar *s = data;
+
+	snprintf (s,
+			512,
+			".segment \"CODE\"\n"
+			".proc load_screen\n"
+			"\n"
+			"%n",
+			&n);
+
+	s += n;
+
+	snprintf (s,
 			4096,
 			"; save to 0 palette.\n"
+			"\tLDA PPUSTATUS\n"
 			"\tLDX #$3f\n"
-			"\tSTX $2006\n"
+			"\tSTX PPUADDR\n"
 			"\tLDX #$00\n"
-			"\tSTX $2006\n"
+			"\tSTX PPUADDR\n"
 			"\t\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
+			"\n"
 			"; save to 1 palette.\n"
+			"\tLDA PPUSTATUS\n"
 			"\tLDX #$3f\n"
-			"\tSTX $2006\n"
+			"\tSTX PPUADDR\n"
 			"\tLDX #$05\n"
-			"\tSTX $2006\n"
+			"\tSTX PPUADDR\n"
 			"\t\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"; save to 2 palette.\n"
+			"\tLDA PPUSTATUS\n"
 			"\tLDX #$3f\n"
-			"\tSTX $2006\n"
+			"\tSTX PPUADDR\n"
 			"\tLDX #$09\n"
-			"\tSTX $2006\n"
+			"\tSTX PPUADDR\n"
 			"\t\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"; save to 3 palette.\n"
+			"\tLDA PPUSTATUS\n"
 			"\tLDX #$3f\n"
-			"\tSTX $2006\n"
+			"\tSTX PPUADDR\n"
 			"\tLDX #$0d\n"
-			"\tSTX $2006\n"
+			"\tSTX PPUADDR\n"
 			"\t\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"\tLDX #$%x\n"
-			"\tSTX $2007\n"
+			"\tSTX PPUDATA\n"
 			"\t\n"
 			"\t\n"
 			"\t\n"
@@ -628,50 +645,157 @@ export_to_ca65 (void)
 		c3[1], c3[2], c3[3],
 		&n);
 
-		gchar *s = data;
 		s += n;
 
 		TileRef *tile_ref = retro_canvas_screen_nes_get_tile_ref ();
-		int screen_size = 32 * 28;
+		int screen_size = 32 * 30;
 
-		guint16 addr = 0x2000;
-		for (int i = 0; i < screen_size; i++) {
-			if (tile_ref[i].tilex >= 0 && tile_ref[i].tiley >= 0) {
-				int tile = tile_ref[i].tiley * 32 + tile_ref[i].tilex;
-				guint8 a0 = (addr & 0xff00) >> 8;
-				guint8 a1 = (addr & 0x00ff) >> 0;
-				snprintf (s, 256, 
-						"\tLDA #$%x\n"
-						"\tSTA $2006\n"
-						"\tLDA #$%x\n"
-						"\tSTA $2006\n"
-						"\tLDX #$%x\n"
-						"\tSTX $2007\n"
-						"%n",
-						a0, a1,
-						tile,
-						&n);
-				s += n;
-			}
-			addr++;
+		snprintf (s, 4096, 
+				"\tLDA PPUSTATUS\n"
+				"\tLDA #$20\n"
+				"\tPHA\n"
+				"\tSTA PPUADDR\n"
+				"\tLDA #$00\n"
+				"\tSTA PPUADDR\n"
+				"\tJMP load_screen0\n"
+				"cycle_load_screen:\n"
+				"\tLDY #$00\n"
+				"\tPLA\n"
+				"\tTAX\n"
+				"\tINX\n"
+				"\tTXA\n"
+				"\tPHA\n"
+				"\tCPX #$21\n"
+				"\tBEQ load_1\n"
+				"\tCPX #$22\n"
+				"\tBEQ load_2\n"
+				"\tCPX #$23\n"
+				"\tBEQ load_3\n"
+				"\tCPX #$24\n"
+				"\tBEQ load_4 ; load_palettes\n"
+				"\tJMP end_load_screen\n"
+				"load_screen0:\n"
+				"\tLDY #$00\n"
+				"%n"
+				,
+			&n);
+		s += n;
+		for (int i = 0; i < 3; i++) {
+			snprintf (s, 512,
+				"load_%d:\n"
+				"\tLDX screen_%d, Y\n"
+				"\tSTX PPUDATA\n"
+				"\tINY\n"
+				"\tBNE load_%d\n"
+				"\tJMP cycle_load_screen\n"
+				"%n",
+				i,
+				i,
+				i,
+			&n);
+
+			s += n;
 		}
 
-		snprintf (s, 255, "\n\n%n", &n);
+		snprintf (s, 512,
+			"load_%d:\n"
+			"\tLDX screen_%d, Y\n"
+			"\tSTX PPUDATA\n"
+			"\tINY\n"
+			"\tCPY #$c0\n"
+			"\tBNE load_%d\n"
+			"\tJMP cycle_load_screen\n"
+			"%n",
+			3,
+			3,
+			3,
+		&n);
+
 		s += n;
 
+		snprintf (s, 512,
+			"load_%d:\n"
+			"\tLDX screen_%d, Y\n"
+			"\tSTX PPUDATA\n"
+			"\tINY\n"
+			"\tCPY #$40\n"
+			"\tBNE load_%d\n"
+			"\tJMP cycle_load_screen\n"
+			"%n",
+			4,
+			4,
+			4,
+		&n);
+
+		s += n;
+
+		snprintf (s, 512,
+				"end_load_screen:\n"
+				"\tPLA\n"
+				"\tRTS\n"
+				".endproc\n"
+				"\n"
+				"\n"
+				"%n",
+				&n);
+
+		s += n;
+
+		/*
+		 * save tiles
+		 */
+		snprintf (s, 255,
+				".segment \"RODATA\"\n"
+				"%n", &n);
+
+		s += n;
+
+		int scr_num = 0;
+		for (int i = 0; i < screen_size; i += 4) {
+			if (i % 256 == 0) {
+				snprintf (s, 256,
+						"screen_%d:\n"
+						"%n"
+						,
+						scr_num++, &n);
+				s += n;
+			}
+			int tile0 = tile_ref[i + 0].tiley * 16 + tile_ref[i + 0].tilex;
+			int tile1 = tile_ref[i + 1].tiley * 16 + tile_ref[i + 1].tilex;
+			int tile2 = tile_ref[i + 2].tiley * 16 + tile_ref[i + 2].tilex;
+			int tile3 = tile_ref[i + 3].tiley * 16 + tile_ref[i + 3].tilex;
+			snprintf (s, 512,
+					".byte $%02x, $%02x, $%02x, $%02x ; (%03d - %03d) \n%n",
+					tile0 < 0? 0: tile0,
+					tile1 < 0? 0: tile1,
+					tile2 < 0? 0: tile2,
+					tile3 < 0? 0: tile3,
+					i,
+					i + 3,
+					&n
+					);
+			s += n;
+		}
 		/*
 		 * save palettes megatiles
 		 */
 
 		guint8 *tile = retro_canvas_screen_nes_get_megatile ();
-		int megatile_count = 8 * 7;
+		int megatile_count = 8 * 8;
 		int indx = 0;
-		for (int i = 0; i < 14; i++) {
-			snprintf (s, 255, ".byte $%x, $%x, $%x, $%x\n%n",
+		snprintf (s, 255,
+				"screen_4:\n%n",
+				&n);
+
+		s += n;
+		for (int i = 0; i < 16; i++) {
+			snprintf (s, 255, ".byte $%02x, $%02x, $%02x, $%02x; (%03d - %03d)\n%n",
 					tile[indx + 0],
 					tile[indx + 1],
 					tile[indx + 2],
 					tile[indx + 3],
+					indx,
+					indx + 3,
 					&n
 					);
 			indx += 4;

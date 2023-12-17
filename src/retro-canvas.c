@@ -31,8 +31,8 @@
 #include "nes-screen-background.h"
 #include "nes-frame-megatile.h"
 
-#define NES_SCREEN_SIZE         32 * 28 
-#define NES_MEGATILE_COUNT       8 *  7
+#define NES_SCREEN_SIZE         32 * 30
+#define NES_MEGATILE_COUNT       8 *  8
 
 struct _RetroCanvas
 {
@@ -1032,7 +1032,7 @@ draw_screen_background (cairo_t                 *cr,
 
 	int max = NES_SCREEN_SIZE;
 
-  for (cyy = 0; cyy < 28; cyy++) {
+  for (cyy = 0; cyy < 30; cyy++) {
 		int mx = 0;
 		int my = 0;
     for (cxx = 0; cxx < 32; cxx++) {
