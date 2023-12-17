@@ -601,11 +601,23 @@ export_to_screen_ca65 (guint32 screen_num)
 	gchar *s = data;
 
 	snprintf (s,
-			512,
+			1024,
+			"PPUCTRL      = $2000\n"
+			"PPUMASK      = $2001\n"
+			"PPUSTATUS    = $2002\n"
+			"OAMADDR      = $2003\n"
+			"PPUSCROLL    = $2005\n"
+			"PPUADDR      = $2006\n"
+			"PPUDATA      = $2007\n"
+			"OAMDMA       = $4014\n"
+			"\n\n"
+			".export load_screen_%d\n"
+			"\n\n"
 			".segment \"CODE\"\n"
 			".proc load_screen_%d\n"
 			"\n"
 			"%n",
+			screen_num,
 			screen_num,
 			&n);
 
