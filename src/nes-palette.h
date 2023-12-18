@@ -66,3 +66,13 @@ nes_palette_set_color_with_map (NesPalette *self,
 
 void
 nes_palette_clean_map (void);
+
+void
+nes_palette_set_draw_tile (NesPalette *nes,
+		guint32 bank,
+		guint32 x,
+		guint32 y,
+		guint8 is_tile);
+
+guint8 *
+nes_palette_get_draw_tile (NesPalette *nes, guint32 bank);

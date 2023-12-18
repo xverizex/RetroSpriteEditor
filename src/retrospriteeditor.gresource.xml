@@ -2,5 +2,7 @@
 <gresources>
 	<gresource prefix="/io/github/xverizex/RetroSpriteEditor/icons/scalable/actions">
     <file alias="pencil.svg">resources/pencil.svg</file>
+    <file alias="mov.svg">resources/mov.svg</file>
+    <file alias="swap.svg">resources/swap.svg</file>
   </gresource>
 </gresources>

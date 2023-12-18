@@ -24,6 +24,8 @@
 #include "retro-canvas.h"
 #include "frame-platform.h"
 #include "tool-pencil.h"
+#include "tool-mov.h"
+#include "tool-swap.h"
 #include "nes-new-project.h"
 #include "general-tools.h"
 #include "project.h"
@@ -55,6 +57,8 @@ struct _MainWindow
   GtkWidget           *box_tools;
   GtkIconTheme        *icon_theme;
   GtkWidget           *tool_button_pencil;
+  GtkWidget           *tool_button_mov;
+  GtkWidget           *tool_button_swap;
 	GtkWidget  					*new_project_nes_window;
 	int  								first;
 	gint32							last_platform;
@@ -272,21 +276,74 @@ main_window_create_nes_widgets (MainWindow *self)
 	gtk_button_set_child (GTK_BUTTON (self->tool_button_pencil), image);
 	gtk_widget_set_valign (image, GTK_ALIGN_CENTER);
 
+
+	self->tool_button_mov = g_object_new (TOOL_TYPE_MOV,
+			"has-frame", FALSE,
+			NULL);
+
+	image = gtk_image_new_from_file ("image-tools/mov.png");
+	gtk_button_set_child (GTK_BUTTON (self->tool_button_mov), image);
+	gtk_widget_set_valign (image, GTK_ALIGN_CENTER);
+
+	self->tool_button_swap = g_object_new (TOOL_TYPE_SWAP,
+			"has-frame", FALSE,
+			NULL);
+
+	image = gtk_image_new_from_file ("image-tools/swap.png");
+	gtk_button_set_child (GTK_BUTTON (self->tool_button_swap), image);
+	gtk_widget_set_valign (image, GTK_ALIGN_CENTER);
+
 #else
   self->tool_button_pencil = g_object_new (TOOL_TYPE_PENCIL,
-                                        "icon-name", "pencil",
-                                        "has-frame", FALSE,
-                                        NULL);
+			"icon-name", "pencil",
+			"has-frame", FALSE,
+			NULL);
+
+	self->tool_button_mov = g_object_new (TOOL_TYPE_MOV,
+			"icon-name", "mov",
+			"has-frame", FALSE,
+			NULL);
+
+	self->tool_button_swap = g_object_new (TOOL_TYPE_SWAP,
+			"icon-name", "swap",
+			"has-frame", FALSE,
+			NULL);
 #endif
 
 
   gtk_box_append (GTK_BOX (self->box_tools), self->tool_button_pencil);
+  gtk_box_append (GTK_BOX (self->box_tools), self->tool_button_mov);
+  gtk_box_append (GTK_BOX (self->box_tools), self->tool_button_swap);
 
   g_signal_connect (self->tool_button_pencil, "toggled", G_CALLBACK (tool_toggled),
                     self);
 
+  g_signal_connect (self->tool_button_mov, "toggled", G_CALLBACK (tool_toggled), self);
+
+  g_signal_connect (self->tool_button_swap, "toggled", G_CALLBACK (tool_toggled), self);
+
+	gtk_toggle_button_set_group (GTK_TOGGLE_BUTTON (self->tool_button_pencil),
+			GTK_TOGGLE_BUTTON (self->tool_button_mov));
+
+	gtk_toggle_button_set_group (GTK_TOGGLE_BUTTON (self->tool_button_swap), GTK_TOGGLE_BUTTON (self->tool_button_mov));
+
+	gtk_toggle_button_set_group (GTK_TOGGLE_BUTTON (self->tool_button_pencil), GTK_TOGGLE_BUTTON (self->tool_button_swap));
+
 	gtk_box_append (GTK_BOX (self->vert_layout), self->general_layout_nes);
 	gtk_widget_set_visible (GTK_WIDGET (self->general_layout_nes), FALSE);
+
+	g_object_set (self->tool_button_pencil, "has-tooltip", TRUE, NULL);
+	g_object_set (self->tool_button_mov, "has-tooltip", TRUE, NULL);
+	g_object_set (self->tool_button_swap, "has-tooltip", TRUE, NULL);
+
+	gtk_widget_set_tooltip_markup (GTK_WIDGET (self->tool_button_pencil), 
+			"<span weight=\"bold\">A pencil tool </span><span>- Draw pixels with it tool.</span>");
+
+	gtk_widget_set_tooltip_markup (GTK_WIDGET (self->tool_button_mov), 
+			"<span weight=\"bold\">A moving tool </span><span>- Moving tiles in the canvas.</span>");
+
+	gtk_widget_set_tooltip_markup (GTK_WIDGET (self->tool_button_swap), 
+			"<span weight=\"bold\">A swap tool </span><span>- Exchange tiles between each other.</span>");
 }
 
 static void

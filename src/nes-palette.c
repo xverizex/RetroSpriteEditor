@@ -52,6 +52,7 @@ struct _NesPalette
   guint32 count_back_y;
   guint32 cur_width_rect;
   guint32 cur_heigh_rect;
+	guint8 *tile_draw[N_NES];
 };
 
 G_DEFINE_FINAL_TYPE (NesPalette, nes_palette, GTK_TYPE_BOX)
@@ -220,11 +221,29 @@ nes_palette_get_block (guint32 w, guint32 h, guint32 blkx, guint32 blky, guint32
 	return p;
 }
 
+void
+nes_palette_set_draw_tile (NesPalette *nes,
+		guint32 bank,
+		guint32 x,
+		guint32 y,
+		guint8 is_tile)
+{
+	nes->tile_draw[bank][y * 16 + x] = is_tile;
+}
+
+guint8 *
+nes_palette_get_draw_tile (NesPalette *nes, guint32 bank)
+{
+	return nes->tile_draw[bank];
+}
+
 static void
 nes_palette_init (NesPalette *self)
 {
   global_nes = self;
   self->cur_palette = NES_SPRITE;
+	self->tile_draw[NES_BACKGROUND] = g_malloc0 (16 * 16);
+	self->tile_draw[NES_SPRITE] = g_malloc0 (16 * 16);
 
   self->tileset = g_object_new (RETRO_TYPE_CANVAS,
                                 NULL);

@@ -81,7 +81,8 @@ struct _RetroCanvas
   guint32 last_blocky;
   guint32 colour_block_size;
   gboolean show_hex_index;
-
+	guint32 selected_mov;
+	guint32 selected_swap;
 
   guint32 tool;
   gboolean drawing_tool;
@@ -109,9 +110,28 @@ enum {
   N_PROPERTIES
 };
 
+typedef struct _DrawTileParam {
+	int cxx;
+	int cyy;
+	int px;
+	int py;
+	int mx;
+	int my;
+	int offsetx;
+	int offsety;
+	int blkx;
+	int blky;
+} DrawTileParam;
+
 static RetroCanvas *global_drawing_canvas;
 static RetroCanvas *global_drawing_canvas_tileset;
 static RetroCanvas *global_drawing_canvas_screen;
+
+void
+retro_canvas_draw_tile (RetroCanvas *self,
+		DrawTileParam *p)
+{
+}
 
 guint8 *
 retro_canvas_screen_nes_get_megatile ()
@@ -505,6 +525,403 @@ draw_tool_clear_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
 }
 
 static void
+draw_tool_swap_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
+{
+  int posx = self->mx - self->px;
+  int posy = self->my - self->py;
+
+  guint32 count_rect_w = self->orig_width / self->width_rect;
+  guint32 count_rect_h = self->orig_height / self->height_rect;
+
+  guint32 rect_w_result_size = c_pow (self->width_rect, self->scale);
+  guint32 rect_h_result_size = c_pow (self->height_rect, self->scale);
+
+  guint32 y = self->py;
+  guint32 x = self->px;
+  int found = 0;
+  int xx = 1;
+  int yy = 1;
+  int cyy = 0;
+  int cxx = 0;
+  int pointx = 0;
+  int pointy = 0;
+  for (cyy = 0; cyy < count_rect_h; cyy++) {
+    for (cxx = 0; cxx < count_rect_w; cxx++) {
+      int ex = xx + rect_w_result_size;
+      int ey = yy + rect_h_result_size;
+
+      if ((posx >= xx) && (posx <= ex)) {
+        if ((posy >= yy) && (posy <= ey)) {
+          found = 1;
+          break;
+        }
+      }
+      xx += rect_w_result_size;
+      xx++;
+    }
+    if (found)
+      break;
+    yy += rect_h_result_size;
+    yy++;
+    xx = 1;
+  }
+
+  if (found == 0)
+    return;
+
+  double line_width = 1.0;
+
+  if (self->left_top) {
+    x = y = 0;
+  }
+
+	xx = 1;
+	yy = 1;
+
+	NesPalette *nes = nes_palette_get ();
+
+	int vx = self->tile_start_x;
+	int vy = self->tile_start_y;
+	int vex = vx;
+	int vey = vy;
+	vx = vy = 0;
+
+	int cx = 0;
+	int cy = 0;
+	
+	int cpowx = c_pow (1, self->scale);
+	int cpowy = c_pow (1, self->scale);
+
+	int offsetx = 1;
+	int offsety = 1;
+	for (int n = 0; n < cyy; n++) {
+		offsety++;
+	}
+	for (int n = 0; n < cxx; n++) {
+		offsetx++;
+	}
+	int blkx = 0;
+	int blky = 0;
+
+	guint32 cur_bank = global_get_cur_bank ();
+	guint8 *tile_pos = nes_palette_get_draw_tile (nes, cur_bank);
+	int ty = self->tile_start_y;
+	int tx = self->tile_start_x;
+
+	int found_tile_swap = 0;
+  for (cy = 0; cy < 16; cy++) {
+		int mx = 0;
+		int my = 0;
+    for (cx = 0; cx < 16; cx++) {
+			int nx = 0;
+			int ny = 0;
+
+			if (tx >= 0 &&
+					ty >= 0 &&
+					tile_pos[ty * 16 + tx] > 0) {
+
+				if (cx == self->last_blockx &&
+						cy == self->last_blocky) {
+					for (ny = 0; ny < 8; ) {
+						for ( nx = 0; nx < 8; ) {
+							int oy = cy * 8 + ny;
+							int ox = cx * 8 + nx;
+							NesTilePoint *p = nes_palette_get_color (nes, ox, oy);
+
+							if (p->index > 0) {
+								guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
+								guint32 *indexed_colour = global_nes_palette_get_memory_index (0);
+
+  							double r, g, b;
+  							colour_rgb_get_double_color (colours[indexed_colour[p->index - 1]], &r, &g, &b);
+  							cairo_set_source_rgb (cr, r, g, b);
+
+								if (self->selected_swap == 2) {
+									found_tile_swap = 1;
+									NesParamPoint n;
+									n.blockx = cxx;
+									n.blocky = cyy;
+									n.x = nx;
+									n.y = ny;
+
+									int loy = cyy * 8 + ny;
+									int lox = cxx * 8 + nx;
+
+									NesTilePoint *pl = nes_palette_get_color (nes, lox, loy);
+									int indx_color = pl->index;
+									
+									nes_palette_set_draw_tile (nes, cur_bank, n.blockx, n.blocky, 1);
+    							nes_palette_set_color (nes, &n, p->index);
+
+
+									n.blockx = cx;
+									n.blocky = cy;
+									n.x = nx;
+									n.y = ny;
+
+									nes_palette_set_draw_tile (nes, cur_bank, n.blockx, n.blocky, 1);
+    							nes_palette_set_color (nes, &n, indx_color);
+									self->tile_start_x = -1;
+									self->tile_start_y = -1;
+								}
+
+  							cairo_rectangle (cr, 
+										self->px + cxx * 8 * c_pow (1, self->scale) + mx + offsetx, 
+										self->py + cyy * 8 * c_pow (1, self->scale) + my + offsety,
+										cpowx,
+										cpowy);
+
+								cairo_fill (cr);
+							}
+
+							mx += cpowx;
+							nx++;
+						}
+						my += cpowy;
+						ny++;
+						mx = 0;
+					}
+					my = 0;
+					blkx += 1;
+				}
+			}
+		}
+		blkx = 0;
+		blky += 1;
+		cx = 0;
+		my = 0;
+	}
+
+	offsetx = 1;
+	offsety = 1;
+	for (int n = 0; n < self->tile_start_y; n++) {
+		offsety++;
+	}
+	for (int n = 0; n < self->tile_start_x; n++) {
+		offsetx++;
+	}
+	blkx = 0;
+	blky = 0;
+
+  for (cy = 0; cy < 16; cy++) {
+		int mx = 0;
+		int my = 0;
+    for (cx = 0; cx < 16; cx++) {
+			int nx = 0;
+			int ny = 0;
+
+				if (cx == self->tile_start_x &&
+						cy == self->tile_start_y) {
+					for (ny = 0; ny < 8; ) {
+						for ( nx = 0; nx < 8; ) {
+							int oy = cyy * 8 + ny;
+							int ox = cxx * 8 + nx;
+							NesTilePoint *p = nes_palette_get_color (nes, ox, oy);
+
+							if (p->index > 0) {
+								guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
+								guint32 *indexed_colour = global_nes_palette_get_memory_index (0);
+
+  							double r, g, b;
+  							colour_rgb_get_double_color (colours[indexed_colour[p->index - 1]], &r, &g, &b);
+  							cairo_set_source_rgb (cr, r, g, b);
+
+  							cairo_rectangle (cr, 
+										self->px + cx * 8 * c_pow (1, self->scale) + mx + offsetx, 
+										self->py + cy * 8 * c_pow (1, self->scale) + my + offsety,
+										cpowx,
+										cpowy);
+
+								cairo_fill (cr);
+							}
+
+							mx += cpowx;
+							nx++;
+						}
+						my += cpowy;
+						ny++;
+						mx = 0;
+					}
+					my = 0;
+					blkx += 1;
+			}
+		}
+		blkx = 0;
+		blky += 1;
+		cx = 0;
+		my = 0;
+	}
+
+	if (found_tile_swap == 1) {
+		self->selected_swap = 0;
+	}
+}
+static void
+draw_tool_mov_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
+{
+  int posx = self->mx - self->px;
+  int posy = self->my - self->py;
+
+  guint32 count_rect_w = self->orig_width / self->width_rect;
+  guint32 count_rect_h = self->orig_height / self->height_rect;
+
+  guint32 rect_w_result_size = c_pow (self->width_rect, self->scale);
+  guint32 rect_h_result_size = c_pow (self->height_rect, self->scale);
+
+  guint32 y = self->py;
+  guint32 x = self->px;
+  int found = 0;
+  int xx = 1;
+  int yy = 1;
+  int cyy = 0;
+  int cxx = 0;
+  int pointx = 0;
+  int pointy = 0;
+  for (cyy = 0; cyy < count_rect_h; cyy++) {
+    for (cxx = 0; cxx < count_rect_w; cxx++) {
+      int ex = xx + rect_w_result_size;
+      int ey = yy + rect_h_result_size;
+
+      if ((posx >= xx) && (posx <= ex)) {
+        if ((posy >= yy) && (posy <= ey)) {
+          found = 1;
+          break;
+        }
+      }
+      xx += rect_w_result_size;
+      xx++;
+    }
+    if (found)
+      break;
+    yy += rect_h_result_size;
+    yy++;
+    xx = 1;
+  }
+
+  if (found == 0)
+    return;
+
+  double line_width = 1.0;
+
+  if (self->left_top) {
+    x = y = 0;
+  }
+
+	xx = 1;
+	yy = 1;
+
+	NesPalette *nes = nes_palette_get ();
+
+	int vx = self->tile_start_x;
+	int vy = self->tile_start_y;
+	int vex = vx;
+	int vey = vy;
+	vx = vy = 0;
+
+	int cx = 0;
+	int cy = 0;
+	
+	int cpowx = c_pow (1, self->scale);
+	int cpowy = c_pow (1, self->scale);
+
+	int offsetx = 1;
+	int offsety = 1;
+	for (int n = 0; n < cyy; n++) {
+		offsety++;
+	}
+	for (int n = 0; n < cxx; n++) {
+		offsetx++;
+	}
+	int blkx = 0;
+	int blky = 0;
+
+	guint32 cur_bank = global_get_cur_bank ();
+	guint8 *tile_pos = nes_palette_get_draw_tile (nes, cur_bank);
+	int ty = self->tile_start_y;
+	int tx = self->tile_start_x;
+
+	int found_tile_mov = 0;
+  for (cy = 0; cy < 16; cy++) {
+		int mx = 0;
+		int my = 0;
+    for (cx = 0; cx < 16; cx++) {
+			int nx = 0;
+			int ny = 0;
+
+			if (tx >= 0 &&
+					ty >= 0 &&
+					tile_pos[ty * 16 + tx] > 0) {
+
+				if (cx == self->last_blockx &&
+						cy == self->last_blocky) {
+					for (ny = 0; ny < 8; ) {
+						for ( nx = 0; nx < 8; ) {
+							int oy = cy * 8 + ny;
+							int ox = cx * 8 + nx;
+							NesTilePoint *p = nes_palette_get_color (nes, ox, oy);
+
+							if (p->index > 0) {
+								guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
+								guint32 *indexed_colour = global_nes_palette_get_memory_index (0);
+
+  							double r, g, b;
+  							colour_rgb_get_double_color (colours[indexed_colour[p->index - 1]], &r, &g, &b);
+  							cairo_set_source_rgb (cr, r, g, b);
+
+								if (self->selected_mov == 2) {
+									found_tile_mov = 1;
+									NesParamPoint n;
+									n.blockx = cxx;
+									n.blocky = cyy;
+									n.x = nx;
+									n.y = ny;
+
+									nes_palette_set_draw_tile (nes, cur_bank, n.blockx, n.blocky, 1);
+    							nes_palette_set_color (nes, &n, p->index);
+
+									n.blockx = cx;
+									n.blocky = cy;
+									n.x = nx;
+									n.y = ny;
+
+									nes_palette_set_draw_tile (nes, cur_bank, n.blockx, n.blocky, 0);
+    							nes_palette_set_color (nes, &n, 0);
+									self->tile_start_x = -1;
+									self->tile_start_y = -1;
+								}
+
+  							cairo_rectangle (cr, 
+										self->px + cxx * 8 * c_pow (1, self->scale) + mx + offsetx, 
+										self->py + cyy * 8 * c_pow (1, self->scale) + my + offsety,
+										cpowx,
+										cpowy);
+
+								cairo_fill (cr);
+							}
+
+							mx += cpowx;
+							nx++;
+						}
+						my += cpowy;
+						ny++;
+						mx = 0;
+					}
+					my = 0;
+					blkx += 1;
+				}
+			}
+		}
+		blkx = 0;
+		blky += 1;
+		cx = 0;
+		my = 0;
+	}
+
+	if (found_tile_mov == 1) {
+		self->selected_mov = 0;
+	}
+}
+static void
 draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 {
   int posx = self->mx - self->px;
@@ -864,6 +1281,10 @@ draw_tool_pencil (RetroCanvas *self, cairo_t *cr, int width, int height)
     n.x = self->last_pointx;
     n.y = self->last_pointy;
     NesPalette *nes = nes_palette_get ();
+
+		guint32 cur_bank = global_get_cur_bank ();
+		nes_palette_set_draw_tile (nes, cur_bank, n.blockx, n.blocky, 1);
+		
     nes_palette_set_color (nes, &n, self->selected_index_color + 1);
   }
 
@@ -901,6 +1322,12 @@ draw_tool (cairo_t                 *cr,
 			break;
 		case INDX_TOOL_CLEAR_TILE:
 			draw_tool_clear_tile (self, cr, width, height);
+			break;
+		case INDX_TOOL_MOV:
+			draw_tool_mov_tile (self, cr, width, height);
+			break;
+		case INDX_TOOL_SWAP:
+			draw_tool_swap_tile (self, cr, width, height);
 			break;
 	}
 
@@ -1131,9 +1558,37 @@ draw_pixels (cairo_t                 *cr,
 
   int nx = 0;
   int ny = 0;
+	int blkx = 0;
+	int blky = 0;
   NesPalette *nes = nes_palette_get ();
   for (guint32 y = 0; y < self->orig_height; y++) {
     for (guint32 x = 0; x < self->orig_width; x++) {
+			if (self->tool == INDX_TOOL_MOV &&
+					blkx == self->tile_start_x &&
+					blky == self->tile_start_y) {
+
+      	nx++;
+      	xx += c_pow (1, self->scale);
+      	if (nx == 8) {
+       		xx++;
+       		nx = 0;
+					blkx++;
+      	}
+				continue;
+			}
+			if (self->tool == INDX_TOOL_SWAP &&
+					blkx == self->tile_start_x &&
+					blky == self->tile_start_y) {
+
+      	nx++;
+      	xx += c_pow (1, self->scale);
+      	if (nx == 8) {
+       		xx++;
+       		nx = 0;
+					blkx++;
+      	}
+				continue;
+			}
 
 			guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
       double r, g, b;
@@ -1150,14 +1605,17 @@ draw_pixels (cairo_t                 *cr,
       if (nx == 8) {
         xx++;
         nx = 0;
+				blkx++;
       }
     }
     xx = self->px + 1;
     nx = 0;
+		blkx = 0;
     ny++;
     yy += c_pow (1, self->scale);
     if (ny == 8) {
       yy++;
+			blky++;
       ny = 0;
     }
   }
@@ -1714,6 +2172,8 @@ mouse_hit_canvas_press (GtkGestureClick *evt,
 
 		switch (self->tool) {
 			case INDX_TOOL_PENCIL:
+				self->selected_mov = 0;
+				self->selected_swap = 0;
     		n.blockx = self->last_blockx;
     		n.blocky = self->last_blocky;
     		n.x = self->last_pointx;
@@ -1734,6 +2194,40 @@ mouse_hit_canvas_press (GtkGestureClick *evt,
 				set_palette_megatile (self);
 				break;
 			case INDX_TOOL_CLEAR_TILE:
+				break;
+			case INDX_TOOL_MOV:
+				{
+					self->selected_swap = 0;
+					self->selected_mov++;
+					if (self->selected_mov > 2) {
+						self->selected_mov = 0;
+					}
+					int xx, yy;
+					xx = 0;
+					yy = 0;
+					if (self->selected_mov == 1) {
+						calculate_last_block_and_point (self, &xx, &yy);
+						self->tile_start_x = self->last_blockx;
+						self->tile_start_y = self->last_blocky;
+					} 
+				}
+				break;
+			case INDX_TOOL_SWAP:
+				{
+					self->selected_mov = 0;
+					self->selected_swap++;
+					if (self->selected_swap > 2) {
+						self->selected_swap = 0;
+					}
+					int xx, yy;
+					xx = 0;
+					yy = 0;
+					if (self->selected_swap == 1) {
+						calculate_last_block_and_point (self, &xx, &yy);
+						self->tile_start_x = self->last_blockx;
+						self->tile_start_y = self->last_blocky;
+					} 
+				}
 				break;
 		}
 
@@ -1766,6 +2260,8 @@ retro_canvas_init (RetroCanvas *self)
   self->tool = 0;
   self->drawing_tool = FALSE;
   self->show_hex_index = FALSE;
+	self->selected_mov = 0;
+	self->selected_swap = 0;
 
 	self->megatile = g_malloc0 (sizeof (guint8) * NES_MEGATILE_COUNT);
 

@@ -18,6 +18,8 @@ retrospriteeditor_sources = [
   'nes-frame-megatile.c',
   'tool-copy-tile.c',
   'tool-clear-tile.c',
+  'tool-mov.c',
+  'tool-swap.c',
   'project.c',
 ]
 

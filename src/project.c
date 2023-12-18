@@ -263,7 +263,7 @@ read_tilemap_and_set_nes (void)
 	int yy = 0;
 	int xx = 0;
 	unsigned char *t = data;
-	for (int i = 0; i < 2; i++) {
+	for (int cur_bank = 0; cur_bank < 2; cur_bank++) {
 		blkx = 0;
 		blky = 0;
 		for (int tile = 0; tile < 256; tile++) {
@@ -298,9 +298,10 @@ read_tilemap_and_set_nes (void)
    				NesPalette *nes = nes_palette_get ();
 
 					if (found > 0) {
-    				nes_palette_set_color_with_map (nes, &n, index + 1, i);
+    				nes_palette_set_color_with_map (nes, &n, index + 1, cur_bank);
+						nes_palette_set_draw_tile (nes, cur_bank, blkx, blky, 1);
 					} else {
-    				nes_palette_set_color_with_map (nes, &n, 0, i);
+    				nes_palette_set_color_with_map (nes, &n, 0, cur_bank);
 					}
 				}
 			}
