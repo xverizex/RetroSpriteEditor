@@ -380,6 +380,16 @@ project_open_nes (char *filepath)
 	open_nes_screen_palettes ();
 }
 
+void
+project_import_nes_chr (char *chr)
+{
+	if (prj->file_to_export) {
+		g_free (prj->file_to_export);
+	}
+	prj->file_to_export = g_strdup_printf ("%s", chr);
+	read_tilemap_and_set_nes ();
+}
+
 static void
 write_nes_palettes (xmlTextWriterPtr writer)
 {

@@ -95,6 +95,43 @@ action_menu (GSimpleAction *simple,
 }
 #endif
 
+static void
+async_selected_import_chr (GObject *source_object,
+		GAsyncResult *res,
+		gpointer user_data)
+{
+	MainWindow *self = MAIN_WINDOW (user_data);
+
+	GtkFileDialog *dia = GTK_FILE_DIALOG (source_object);
+	GFile *chr = gtk_file_dialog_open_finish (
+			dia,
+			res,
+			NULL);
+
+	if (!chr)
+		return;
+
+	char *c_chr = g_strdup (g_file_get_path (chr));
+
+	nes_palette_clean_map ();
+	project_import_nes_chr (c_chr);
+}
+
+static void
+action_import_nes_chr (GSimpleAction *simple,
+		GVariant *parameter,
+		gpointer user_data)
+{
+	MainWindow *self = MAIN_WINDOW (user_data);
+
+	GtkFileDialog *dia = gtk_file_dialog_new ();
+	gtk_file_dialog_open (dia,
+			GTK_WINDOW (self),
+			NULL,
+			async_selected_import_chr,
+			self);
+}
+
 void
 main_window_connect_widgets (MainWindow *self)
 {
@@ -389,7 +426,8 @@ main_window_init (MainWindow *self)
 		{"export", 		action_export},
 		{"new_project_nes", action_new_project_nes},
 		{"save_project", action_save_project},
-		{"open_project_nes", action_open_project_nes}
+		{"open_project_nes", action_open_project_nes},
+		{"import_nes_chr", action_import_nes_chr}
 	};
 
 	g_action_map_add_action_entries (G_ACTION_MAP (self), entries, G_N_ELEMENTS (entries), self);
@@ -398,9 +436,13 @@ main_window_init (MainWindow *self)
 	g_menu_append (menu_open, "Open Project NES", "win.open_project_nes");
 	GMenu *menu_project = g_menu_new ();
 	g_menu_append (menu_project, "New NES Project", "win.new_project_nes");
+	GMenu *menu_import = g_menu_new ();
+	g_menu_append (menu_import, "Import CHR", "win.import_nes_chr");
+
 	GMenu *menu_root = g_menu_new ();
 	g_menu_append_submenu (menu_root, "New Project", G_MENU_MODEL (menu_project));
 	g_menu_append_submenu (menu_root, "Open", G_MENU_MODEL (menu_open));
+	g_menu_append_submenu (menu_root, "Import", G_MENU_MODEL (menu_import));
 	g_menu_append (menu_root, "Save", "win.save_project");
 	g_menu_append (menu_root, "Export", "win.export");
 
