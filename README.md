@@ -15,7 +15,7 @@ Draw your sprites and backgrounds with this program specially designed for retro
 * 4 palettes to choose from, which can be customized.
 * Two memory banks for sprites and backgrounds.
 * Showing the color index numbers.
-* Multi screens for saving a assembler code.
+* Multi screens for saving an assembler code.
 
 ## Donate
 * [Donation Alerts](https://www.donationalerts.com/r/xverizex)
