@@ -2,7 +2,7 @@
 
 ![screenshot](screenshots/0.png)
 
-Draw your sprites and backgrounds with this program specially designed for retro consoles. There is only a pencil available.
+Draw your sprites and backgrounds with this program specially designed for retro consoles.
 
 ## FEATURES
 * saving to NES format
