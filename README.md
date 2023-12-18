@@ -8,6 +8,8 @@ Draw your sprites and backgrounds with this program specially designed for retro
 * saving to NES format
 * pencil for pixel art
 * completely free software
+* The button moving for moving tiles on the canvas.
+* The button swapping for exchange tiles each other.
 
 ## NES
 * 4 palettes to choose from, which can be customized.
