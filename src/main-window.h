@@ -30,11 +30,10 @@ G_DECLARE_FINAL_TYPE (MainWindow, main_window, MAIN, WINDOW, AdwApplicationWindo
 
 G_END_DECLS
 
-void 
-main_window_connect_widgets (MainWindow *self);
+void main_window_connect_widgets (MainWindow *self);
 
-MainWindow *
-main_window_get (void);
+MainWindow * main_window_get (void);
 
-void 
-main_window_create_nes_widgets (MainWindow *self);
+void main_window_create_nes_widgets (MainWindow *self);
+
+void main_window_set_cur_platform (MainWindow *self, guint32 platform);

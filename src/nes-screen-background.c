@@ -286,6 +286,9 @@ static void
 nes_screen_background_init (NesScreenBackground *self)
 {
 	global = self;
+
+	gtk_window_set_title (GTK_WINDOW (self), "Setup Screens for background");
+
 	self->count = 0;
 	self->screens = NULL;
 	self->scrolls = NULL;

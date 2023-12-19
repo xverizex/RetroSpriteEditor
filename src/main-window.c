@@ -62,6 +62,8 @@ struct _MainWindow
 	GtkWidget  					*new_project_nes_window;
 	int  								first;
 	gint32							last_platform;
+	guint32							cur_platform;
+	guint32							cur_palette;
 };
 
 G_DEFINE_FINAL_TYPE (MainWindow, main_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -124,6 +126,9 @@ action_import_nes_chr (GSimpleAction *simple,
 {
 	MainWindow *self = MAIN_WINDOW (user_data);
 
+	if (global_type_palette_get_cur_platform () == NO_PLATFORM)
+		return;
+
 	GtkFileDialog *dia = gtk_file_dialog_new ();
 	gtk_file_dialog_open (dia,
 			GTK_WINDOW (self),
@@ -133,12 +138,19 @@ action_import_nes_chr (GSimpleAction *simple,
 }
 
 void
+main_window_set_cur_platform (MainWindow *self, guint32 platform)
+{
+	self->cur_platform = platform;
+}
+
+void
 main_window_connect_widgets (MainWindow *self)
 {
 	if (!self->first) {
 		self->first = 1;
-		switch (global_type_palette_get_cur_platform ()) {
+		switch (self->cur_platform) {
 			case PLATFORM_PALETTE_NES:
+				global_type_palette_set_cur (PLATFORM_PALETTE_NES, NES_TYPE_PALETTE_2C02);
 				self->last_platform = PLATFORM_PALETTE_NES;
 				gtk_widget_set_visible (self->general_layout_nes, TRUE);
 				break;
@@ -151,12 +163,14 @@ main_window_connect_widgets (MainWindow *self)
 	switch (self->last_platform) {
 		case PLATFORM_PALETTE_NES:
 			gtk_widget_set_visible (self->general_layout_nes, FALSE);
+			global_type_palette_set_cur (NO_PLATFORM, 0);
 			break;
 		default:
 			break;
 	}
-	switch (global_type_palette_get_cur_platform ()) {
+	switch (self->cur_platform) {
 		case PLATFORM_PALETTE_NES:
+			global_type_palette_set_cur (PLATFORM_PALETTE_NES, NES_TYPE_PALETTE_2C02);
 			self->last_platform = PLATFORM_PALETTE_NES;
 			gtk_widget_set_visible (self->general_layout_nes, TRUE);
 			break;
@@ -183,6 +197,10 @@ async_selected_project (GObject *source_object,
 
 	char *c_project = g_strdup (g_file_get_path (project));
 
+	self->cur_platform = PLATFORM_PALETTE_NES;
+	self->cur_palette = NES_TYPE_PALETTE_2C02;
+	global_type_palette_set_cur (PLATFORM_PALETTE_NES, NES_TYPE_PALETTE_2C02);
+
 	main_window_connect_widgets (self);
 	nes_palette_clean_map ();
 	project_open_nes (c_project);
@@ -206,6 +224,9 @@ action_open_project_nes (GSimpleAction *simple,
 static void
 export_to_file (MainWindow *self)
 {
+	if (global_type_palette_get_cur_platform () == NO_PLATFORM)
+		return;
+
 	char *filepath = project_get_filepath_to_export ();
 	if (!filepath)
 		return;
@@ -233,6 +254,9 @@ action_save_project (GSimpleAction *simple,
 		gpointer user_data)
 {
 	MainWindow *self = MAIN_WINDOW (user_data);
+
+	if (global_type_palette_get_cur_platform () == NO_PLATFORM)
+		return;
 
 	export_to_file (self);
 	project_save_nes ();
@@ -381,6 +405,8 @@ main_window_create_nes_widgets (MainWindow *self)
 
 	gtk_widget_set_tooltip_markup (GTK_WIDGET (self->tool_button_swap), 
 			"<span weight=\"bold\">A swap tool </span><span>- Exchange tiles between each other.</span>");
+
+	global_type_palette_set_cur (NO_PLATFORM, 0);
 }
 
 static void
@@ -465,8 +491,7 @@ main_window_init (MainWindow *self)
 
   gtk_box_append (GTK_BOX (self->vert_layout), self->header_bar);
 
-	gtk_window_set_title (GTK_WINDOW (self), "Retro Sprite Main");
+	gtk_window_set_title (GTK_WINDOW (self), "Retro Sprite Editor");
 
 	main_window_create_nes_widgets (self);
-
 }

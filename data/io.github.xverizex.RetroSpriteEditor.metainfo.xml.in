@@ -9,11 +9,17 @@
 	<summary>The pixel editor for retro consoles.</summary>
 	<description>
 	  <p>The drawing tool for retro consoles.</p>
-		<p>Features for NES: </p> 
-		<p>Multiscreen for saving background and load via assembler code.</p>
-		<p>Button pencil for drawing pixels. Button mov for moving tiles. Button swap for exchange tiles each other.</p>
-		<p>Two banks memory.</p>
-		<p>Four palettes for each bank.</p>
+		<p>Features for NES:</p> 
+		<ul>
+			<li>Multiscreen for saving background and load via assembler code.</li>
+			<li>Button pencil for drawing pixels.</li>
+			<li>Button mov for moving tiles.</li>
+			<li>Button swap for exchange tiles each other.</li>
+			<li>Two banks memory.</li>
+			<li>Four palettes for each bank.</li>
+			<li>Button to copy from background to screen.</li>
+			<li>Megatile setup</li>
+		</ul>
 
 		<p>Available platforms: NES</p>
 	</description>

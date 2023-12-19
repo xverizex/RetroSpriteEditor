@@ -527,6 +527,8 @@ draw_tool_clear_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
 static void
 draw_tool_swap_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
 {
+	guint32 cur_platform = global_type_palette_get_cur_platform ();
+
   int posx = self->mx - self->px;
   int posy = self->my - self->py;
 
@@ -759,6 +761,8 @@ draw_tool_swap_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
 static void
 draw_tool_mov_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
 {
+	guint32 cur_platform = global_type_palette_get_cur_platform ();
+
   int posx = self->mx - self->px;
   int posy = self->my - self->py;
 
@@ -924,6 +928,8 @@ draw_tool_mov_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
 static void
 draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 {
+	guint32 cur_platform = global_type_palette_get_cur_platform ();
+
   int posx = self->mx - self->px;
   int posy = self->my - self->py;
 
@@ -1268,6 +1274,8 @@ calculate_last_block_and_point (RetroCanvas *self, int *ax, int *ay)
 static void
 draw_tool_pencil (RetroCanvas *self, cairo_t *cr, int width, int height)
 {
+	guint32 cur_platform = global_type_palette_get_cur_platform ();
+
 	int x, y;
 	x = y = 0;
 	calculate_last_block_and_point (self, &x, &y);
@@ -1346,6 +1354,7 @@ draw_rectangle (cairo_t                 *cr,
                 RetroCanvas *self)
 {
 
+	guint32 cur_platform = global_type_palette_get_cur_platform ();
 
   int x = self->px;
   int y = self->py;
@@ -1409,6 +1418,8 @@ retro_canvas_set_type_palette (RetroCanvas *self,
                                                 guint32                  type,
                                                 guint32                  count)
 {
+	guint32 cur_platform = global_type_palette_get_cur_platform ();
+
   self->colours = global_type_palette_get_cur_ptr_palette (0);
   self->count_colours = count;
 }
@@ -1419,6 +1430,8 @@ draw_screen_background (cairo_t                 *cr,
                     int                      height,
                     RetroCanvas *self)
 {
+	guint32 cur_platform = global_type_palette_get_cur_platform ();
+
   int xx = self->px + 1;
   int yy = self->py + 1;
 
@@ -1553,6 +1566,7 @@ draw_pixels (cairo_t                 *cr,
                     int                      height,
                     RetroCanvas *self)
 {
+	guint32 cur_platform = global_type_palette_get_cur_platform ();
   int xx = self->px + 1;
   int yy = self->py + 1;
 
@@ -1627,6 +1641,7 @@ draw_colour_blocks (cairo_t                 *cr,
                     int                      height,
                     RetroCanvas *self)
 {
+	guint32 cur_platform = global_type_palette_get_cur_platform ();
   guint32 indx = 0;
 
   cairo_set_font_size (cr, 16.0);

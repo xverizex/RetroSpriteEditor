@@ -2,6 +2,7 @@
 #include <gtk/gtk.h>
 
 enum {
+	NO_PLATFORM,
   PLATFORM_PALETTE_NES,
   N_PLATFORM_PALETTE
 };

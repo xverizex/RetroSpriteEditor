@@ -23,6 +23,7 @@
 #include "nes-new-project.h"
 #include "main-window.h"
 #include "project.h"
+#include "global-functions.h"
 
 struct _NesNewProject
 {
@@ -95,6 +96,7 @@ click_create_project (GtkButton *btn, gpointer user_data)
 	project_set_folder_and_name (location, project_name);
 
 	MainWindow *win = main_window_get ();
+	main_window_set_cur_platform (MAIN_WINDOW (win), PLATFORM_PALETTE_NES);
 	main_window_connect_widgets (win);
 	gtk_window_close (GTK_WINDOW (self));
 }
@@ -103,6 +105,8 @@ static void
 nes_new_project_init (NesNewProject *self)
 {
 	gtk_window_set_hide_on_close (GTK_WINDOW (self), TRUE);
+	gtk_window_set_title (GTK_WINDOW (self), "New NES project");
+
 	self->vert_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
 	self->frame_location = g_object_new (GTK_TYPE_FRAME,
 			"label", "Project Location", NULL);

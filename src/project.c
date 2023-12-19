@@ -36,7 +36,8 @@ struct Project *prj;
 static void open_nes_ref (void);
 static void open_nes_screen_palettes (void);
 
-void project_free (void)
+void 
+project_free (void)
 {
 	if (prj->name_screen) {
 		g_free (prj->name_screen);

@@ -134,6 +134,8 @@ nes_setup_palette_init (NesSetupPalette *self)
 		gtk_widget_queue_draw (GTK_WIDGET (self->pal[i]));
 		gtk_widget_queue_draw (GTK_WIDGET (self->col[i]));
 	}
+
+	gtk_window_set_title (GTK_WINDOW (self), "Setup Palette");
 }
 
 void 

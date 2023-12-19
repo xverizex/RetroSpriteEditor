@@ -77,23 +77,27 @@ guint32 colours_2c02[64] = {
   0x000000  // 3f
 };
 
-guint32 global_type_palette_get_cur_platform (void)
+guint32 
+global_type_palette_get_cur_platform (void)
 {
   return cur_platform;
 }
 
-guint32 global_type_palette_get_cur_palette (void)
+guint32 
+global_type_palette_get_cur_palette (void)
 {
   return cur_palette;
 }
 
-void global_type_palette_set_cur (guint32 index, guint32 typen)
+void 
+global_type_palette_set_cur (guint32 index, guint32 typen)
 {
   cur_platform = index;
   cur_palette = typen;
 }
 
-static guint32 *get_ptr_colour_nes (guint32 index)
+static guint32 *
+get_ptr_colour_nes (guint32 index)
 {
   switch (cur_palette)
     {
