@@ -17,5 +17,8 @@ Draw your sprites and backgrounds with this program specially designed for retro
 * Showing the color index numbers.
 * Multi screens for saving an assembler code.
 
+## LINKS
+* [flathub](https://flathub.org/apps/io.github.xverizex.RetroSpriteEditor)
+
 ## Donate
 * [Donation Alerts](https://www.donationalerts.com/r/xverizex)
