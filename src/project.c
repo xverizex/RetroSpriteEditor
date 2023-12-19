@@ -849,11 +849,15 @@ export_to_screen_ca65 (guint32 screen_num)
 
 		s += n;
 		for (int i = 0; i < 16; i++) {
+			guint8 tile0 = global_convert_setup_megatile_to_nes (tile[indx + 0]);
+			guint8 tile1 = global_convert_setup_megatile_to_nes (tile[indx + 1]);
+			guint8 tile2 = global_convert_setup_megatile_to_nes (tile[indx + 2]);
+			guint8 tile3 = global_convert_setup_megatile_to_nes (tile[indx + 3]);
 			snprintf (s, 255, ".byte $%02x, $%02x, $%02x, $%02x; (%03d - %03d)\n%n",
-					tile[indx + 0],
-					tile[indx + 1],
-					tile[indx + 2],
-					tile[indx + 3],
+					tile0,
+					tile1,
+					tile2,
+					tile3,
 					indx,
 					indx + 3,
 					&n

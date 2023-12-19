@@ -47,3 +47,4 @@ GtkWidget *global_get_screen (guint32 index);
 void global_nes_create_screens (void);
 int global_nes_get_cur_screen (void);
 void global_nes_set_cur_screen (int indx);
+guint8 global_convert_setup_megatile_to_nes (guint8 megatile);

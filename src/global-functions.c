@@ -513,3 +513,15 @@ global_nes_get_cur_screen ()
 {
 	return cur_page;
 }
+
+guint8
+global_convert_setup_megatile_to_nes (guint8 megatile)
+{
+	guint8 ret = 0;
+	ret |= (megatile << 6) & 0xc0; 
+	ret |= (megatile << 2) & 0x30;
+	ret |= (megatile >> 2) & 0x0c;
+	ret |= (megatile >> 6) & 0x03;
+
+	return ret;
+}
