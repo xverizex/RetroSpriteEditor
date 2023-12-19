@@ -630,7 +630,6 @@ draw_tool_swap_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
 							int ox = cx * 8 + nx;
 							NesTilePoint *p = nes_palette_get_color (nes, ox, oy);
 
-							if (p->index > 0) {
 								guint32 *colours = global_type_palette_get_cur_ptr_palette (0);
 								guint32 *indexed_colour = global_nes_palette_get_memory_index (0);
 
@@ -667,6 +666,7 @@ draw_tool_swap_tile (RetroCanvas *self, cairo_t *cr, int width, int height)
 									self->tile_start_y = -1;
 								}
 
+							if (p->index > 0) {
   							cairo_rectangle (cr, 
 										self->px + cxx * 8 * c_pow (1, self->scale) + mx + offsetx, 
 										self->py + cyy * 8 * c_pow (1, self->scale) + my + offsety,
