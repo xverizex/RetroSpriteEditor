@@ -637,6 +637,23 @@ export_little_code_to_screen_ca65 (guint32 screen_num)
 
 	snprintf (s,
 			4096,
+			";clear screen before drawing\n"
+			"\tLDX #$20\n"
+			"set_new_addr:\n"
+			"\tLDA PPUSTATUS\n"
+			"\tSTX PPUADDR\n"
+			"\tLDA #$00\n"
+			"\tSTA PPUADDR\n"
+			"\tLDY #$00\n"
+			"clear_cycle:\n"
+			"\tLDA #$00\n"
+			"\tSTA PPUDATA\n"
+			"\tINY\n"
+			"\tBNE clear_cycle\n"
+			"\tINX\n"
+			"\tCPX #$24\n"
+			"\tBNE set_new_addr\n"
+			"\n"
 			"; save to 0 palette.\n"
 			"\tLDA PPUSTATUS\n"
 			"\tLDX #$3f\n"
