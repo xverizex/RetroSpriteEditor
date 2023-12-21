@@ -29,6 +29,11 @@
 		</screenshot>
 	</screenshots>
 	<releases>
+		<release date="2023-12-21" version="0.2.21">
+			<description>
+				<p>Fixed the copying from background to screen.</p>
+			</description>
+		</release>
 		<release date="2023-12-18" version="0.2.20">
 			<description>
 				<p>Fixed the megatile palette export to nes as asm code.</p>
