@@ -987,10 +987,7 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 
 	NesPalette *nes = nes_palette_get ();
 
-	int vx = self->tile_start_x;
-	int vy = self->tile_start_y;
-	int vex = self->tile_end_x - vx;
-	int vey = self->tile_end_y - vy;
+	int vx, vy;
 	vx = vy = 0;
 
 	int cx = 0;
@@ -1010,6 +1007,8 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 	int blkx = 0;
 	int blky = 0;
 
+	int first = 0;
+	int czyy = cyy;
   for (cy = 0; cy < 16; cy++) {
 		int mx = 0;
 		int my = 0;
@@ -1017,6 +1016,16 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 			int nx = 0;
 			int ny = 0;
 			if (self->tile_background_pos[cy * 16 + cx] > 0) {
+				if (!first) {
+					first = 1;
+					cyy = czyy - cy;
+					offsety = 1;
+					blky = 0;
+					for (int n = 0; n < czyy; n++) {
+						blky++;
+					}
+					
+				}
 				for (ny = 0; ny < 8; ) {
 					for ( nx = 0; nx < 8; ) {
 						int oy = cy * 8 + ny;
@@ -1041,11 +1050,20 @@ draw_tool_copy_tile_dst (RetroCanvas *self, cairo_t *cr, int width, int height)
 							/*
 							 * TODO: fix this
 							 */
+#if 1
   						cairo_rectangle (cr, 
 									self->px + cxx * 8 * c_pow (1, self->scale) + vx * 8 * c_pow (1, self->scale) + mx + offsetx + blkx, 
 									self->py + cyy * 8 * c_pow (1, self->scale) + vy * 8 * c_pow (1, self->scale) + my + offsety + blky,
 											cpowx,
 											cpowy);
+#endif
+#if 0
+  						cairo_rectangle (cr, 
+									self->px + cxx * 8 * c_pow (1, self->scale) + vx * 8 * c_pow (1, self->scale) + mx + offsetx + blkx, 
+									self->py + cyy * 8 * c_pow (1, self->scale) + vy * 8 * c_pow (1, self->scale) + my + offsety + blky,
+											cpowx,
+											cpowy);
+#endif
 
 							cairo_fill (cr);
 						}
