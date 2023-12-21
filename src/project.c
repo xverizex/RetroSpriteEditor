@@ -580,7 +580,440 @@ project_save_nes (void)
 }
 
 static void
-export_to_screen_ca65 (guint32 screen_num)
+export_little_code_to_screen_ca65 (guint32 screen_num)
+{
+	gchar path[512];
+	snprintf (path, 512, "%s/screen_%d_ca65.s", prj->folder_path, screen_num);
+
+	GFile *file = g_file_new_for_path (path);
+
+	GFileOutputStream *out = NULL;
+	if (g_file_query_exists (file, NULL)) {
+		out = g_file_replace (file,
+				NULL,
+				FALSE,
+				G_FILE_CREATE_REPLACE_DESTINATION,
+				NULL,
+				NULL);
+	} else {
+		out = g_file_create (file,
+			G_FILE_CREATE_NONE,
+			NULL,
+			NULL
+			);
+	}
+
+	guint32 *c0 = global_nes_palette_get_memory_index (0);
+	guint32 *c1 = global_nes_palette_get_memory_index (1);
+	guint32 *c2 = global_nes_palette_get_memory_index (2);
+	guint32 *c3 = global_nes_palette_get_memory_index (3);
+
+	int n = 0;
+	gchar *data = g_malloc0 (16384);
+	gchar *s = data;
+
+	snprintf (s,
+			1024,
+			"PPUCTRL      = $2000\n"
+			"PPUMASK      = $2001\n"
+			"PPUSTATUS    = $2002\n"
+			"OAMADDR      = $2003\n"
+			"PPUSCROLL    = $2005\n"
+			"PPUADDR      = $2006\n"
+			"PPUDATA      = $2007\n"
+			"OAMDMA       = $4014\n"
+			"\n\n"
+			".export load_screen_%d\n"
+			"\n\n"
+			".segment \"CODE\"\n"
+			".proc load_screen_%d\n"
+			"\n"
+			"%n",
+			screen_num,
+			screen_num,
+			&n);
+
+	s += n;
+
+	snprintf (s,
+			4096,
+			"; save to 0 palette.\n"
+			"\tLDA PPUSTATUS\n"
+			"\tLDX #$3f\n"
+			"\tSTX PPUADDR\n"
+			"\tLDX #$00\n"
+			"\tSTX PPUADDR\n"
+			"\t\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\n"
+			"; save to 1 palette.\n"
+			"\tLDA PPUSTATUS\n"
+			"\tLDX #$3f\n"
+			"\tSTX PPUADDR\n"
+			"\tLDX #$05\n"
+			"\tSTX PPUADDR\n"
+			"\t\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"; save to 2 palette.\n"
+			"\tLDA PPUSTATUS\n"
+			"\tLDX #$3f\n"
+			"\tSTX PPUADDR\n"
+			"\tLDX #$09\n"
+			"\tSTX PPUADDR\n"
+			"\t\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"; save to 3 palette.\n"
+			"\tLDA PPUSTATUS\n"
+			"\tLDX #$3f\n"
+			"\tSTX PPUADDR\n"
+			"\tLDX #$0d\n"
+			"\tSTX PPUADDR\n"
+			"\t\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\tLDX #$%x\n"
+			"\tSTX PPUDATA\n"
+			"\t\n"
+			"\t\n"
+			"\t\n"
+			"%n"
+			,
+		c0[0], c0[1], c0[2], c0[3],
+		c1[1], c1[2], c1[3],
+		c2[1], c2[2], c2[3],
+		c3[1], c3[2], c3[3],
+		&n);
+
+		s += n;
+
+		snprintf (s, 1024,
+				  "\tLDA #$1f\n"
+					"\tPHA\n"
+					"load_screen_main:\n"
+					"\tPLA\n"
+					"\tTAX\n"
+					"\tINX\n"
+					"\tTXA\n"
+					"\tPHA\n"
+					"\tCPX #$20\n"
+					"\tBEQ pre_pre_load_0\n"
+					"\tCPX #$21\n"
+					"\tBEQ pre_pre_load_1\n"
+					"\tCPX #$22\n"
+					"\tBEQ pre_pre_load_2\n"
+					"\tCPX #$23\n"
+					"\tBEQ pre_pre_load_3\n"
+					"\tJMP end\n"
+					"%n",
+					&n);
+
+		s += n;
+
+		for (int i = 0; i < 4; i++) {
+			snprintf (s, 1024,
+					"pre_pre_load_%d:\n"
+					"\tLDX #$00\n"
+					"\tLDY #$00\n"
+					"pre_load_%d:\n"
+					"\tLDA PPUSTATUS\n"
+					"\tLDA #$2%d\n"
+					"\tSTA PPUADDR\n"
+					"load_%d:\n"
+					"\tTXA\n"
+					"\tCMP size_screen_%d\n"
+					"\tBEQ jmp_load_screen_main_%d\n"
+					"\tLDA screen_%d_indx, Y\n"
+					"\tSTA PPUADDR\n"
+					"\tINY\n"
+					"\tLDA screen_%d, X\n"
+					"\tSTA PPUDATA\n"
+					"\tINX\n"
+					"\tBNE pre_load_%d\n"
+					"\tJMP load_screen_main\n"
+					"jmp_load_screen_main_%d:\n"
+					"\tJMP load_screen_main\n"
+					"%n",
+				i, i, i, i, i, i, i, i, i, i, &n);
+			s += n;
+		}
+
+		snprintf (s, 512,
+				"end:\n"
+				"\tPLA\n"
+				"\tLDY #$00\n"
+				"palette_cycle:\n"
+				"\tTYA\n"
+				"\tCMP palette_size\n"
+				"\tBEQ end_palette\n"
+				"\tLDA PPUSTATUS\n"
+				"\tLDA #$23\n"
+				"\tSTA PPUADDR\n"
+				"\tLDA palette_indx, Y\n"
+				"\tCLC\n"
+				"\tADC #$c0\n"
+				"\tSTA PPUADDR\n"
+				"\tLDA palette, Y\n"
+				"\tSTA PPUDATA\n"
+				"\tINY\n"
+				"\tBNE palette_cycle\n"
+				"end_palette:\n"
+				"\tRTS\n"
+				".endproc\n"
+				"\n\n"
+				"%n",
+				&n);
+
+		s += n;
+
+		GtkWidget *screen = global_get_screen (screen_num);
+
+		TileRef *tile_ref = retro_canvas_nes_get_tile_ref (RETRO_CANVAS (screen));
+		int screen_size = 32 * 30;
+
+
+		/*
+		 * save tiles
+		 */
+		snprintf (s, 255,
+				".segment \"RODATA\"\n"
+				"%n", &n);
+
+		s += n;
+
+		int scr_num = 0;
+		int index = 0;
+		guint8 sizes[4] = {0, };
+		for (int i = 0; i < screen_size; i += 4) {
+			if (i % 256 == 0) {
+				snprintf (s, 256,
+						"screen_%d:\n"
+						"%n"
+						,
+						scr_num++, &n);
+				s += n;
+				index = 0;
+			}
+
+
+			int m = 0;
+			int found = 0;
+			for (int in = 0; in < 4; in++) {
+				int tile = tile_ref[i + in].tiley * 16 + tile_ref[i + in].tilex;
+
+				if (tile >= 0) {
+					if (found == 0) {
+						found = 1;
+						snprintf (s, 512,
+							".byte %n", &n);
+						s += n;
+					}
+					snprintf (s, 512, "$%02x%n,%n", tile, &m, &n);
+					sizes[scr_num - 1]++;
+				}
+				index++;
+
+				if (in < 3) {
+					if (tile >= 0)
+						s += n;
+				} else {
+					if (tile >= 0)
+						s += m;
+				}
+			}
+
+			if (*(s - 1) == ',') {
+				s--;
+				*s = 0;
+			}
+
+			if (found) {
+				snprintf (s, 512, "\n%n", &n);
+				s += n;
+			}
+		}
+
+		index = 0;
+		scr_num = 0;
+		for (int i = 0; i < screen_size; i += 4) {
+			if (i % 256 == 0) {
+				snprintf (s, 256,
+						"screen_%d_indx:\n"
+						"%n"
+						,
+						scr_num++, &n);
+				s += n;
+				index = 0;
+			}
+
+
+			int m = 0;
+			int found = 0;
+			for (int in = 0; in < 4; in++) {
+				int tile = tile_ref[i + in].tiley * 16 + tile_ref[i + in].tilex;
+
+				if (tile >= 0) {
+					if (found == 0) {
+						found = 1;
+						snprintf (s, 512,
+							".byte %n", &n);
+						s += n;
+					}
+					snprintf (s, 512, "$%02x%n,%n", index, &m, &n);
+				}
+				index++;
+
+				if (in < 3) {
+					if (tile >= 0)
+						s += n;
+				} else {
+					if (tile >= 0)
+						s += m;
+				}
+			}
+
+			if (*(s - 1) == ',') {
+				s--;
+				*s = 0;
+			}
+
+			if (found) {
+				snprintf (s, 512, "\n%n", &n);
+				s += n;
+			}
+		}
+		/*
+		 * save sizes
+		 */
+		for (int i = 0; i < 4; i++) {
+			snprintf (s, 512,
+					"size_screen_%d:\n"
+					".byte $%02x\n"
+					"%n",
+					i,
+					sizes[i], &n);
+
+			s += n;
+		}
+
+
+		/*
+		 * save palettes megatiles
+		 */
+
+		guint8 *tile = retro_canvas_nes_get_megatile (RETRO_CANVAS (screen));
+		int megatile_count = 8 * 8;
+		int indx = 0;
+
+		int size_palette = 0;
+
+		snprintf (s, 255,
+				"palette:\n%n",
+				&n);
+
+		s += n;
+		int found = 0;
+		int m;
+		guint8 palette_indx[64] = {0, };
+
+		for (int i = 0; i < 64; i++) {
+			guint8 tile0 = global_convert_setup_megatile_to_nes (tile[i]);
+			if (tile0 > 0) {
+				if (found == 0) {
+					found = 1;
+					snprintf (s, 255,
+							".byte %n", &n);
+					s += n;
+				}
+				snprintf (s, 255, "$%02x,%n", tile0, &n);
+				size_palette++;
+				palette_indx[i] = 1;
+				s += n;
+			}
+
+			if (found && i > 0 && ((i % 4) == 0)) {
+				found = 0;
+				if (*(s - 1) == ',') {
+					s--;
+					*s = 0;
+				}
+				snprintf (s, 255,
+						"\n%n",
+						&n);
+
+				s += n;
+			}
+		}
+
+		snprintf (s, 255,
+				"palette_indx:\n%n",
+				&n);
+
+		s += n;
+
+		for (int i = 0; i < 64; i++) {
+			if (palette_indx[i] == 1) {
+				if (found == 0) {
+					found = 1;
+					snprintf (s, 255,
+							".byte %n", &n);
+					s += n;
+				}
+				snprintf (s, 255, "$%02x,%n", i, &n);
+				s += n;
+			}
+
+			if (found && i > 0 && ((i % 4) == 0)) {
+				found = 0;
+				if (*(s - 1) == ',') {
+					s--;
+					*s = 0;
+				}
+				snprintf (s, 255,
+						"\n%n",
+						&n);
+
+				s += n;
+			}
+		}
+
+		snprintf (s, 512,
+				"palette_size:\n"
+				".byte $%02x\n"
+				"%n",
+				size_palette,
+				&n);
+
+		s += n;
+
+	guint32 len_data = strlen (data);
+
+	g_output_stream_write (G_OUTPUT_STREAM (out), data, len_data, NULL, NULL);
+	g_output_stream_close (G_OUTPUT_STREAM (out), NULL, NULL);
+
+	g_free (data);
+}
+
+static void
+export_full_dump_to_screen_ca65 (guint32 screen_num)
 {
 	gchar path[512];
 	snprintf (path, 512, "%s/screen_%d_ca65.s", prj->folder_path, screen_num);
@@ -870,6 +1303,8 @@ export_to_screen_ca65 (guint32 screen_num)
 
 	g_output_stream_write (G_OUTPUT_STREAM (out), data, len_data, NULL, NULL);
 	g_output_stream_close (G_OUTPUT_STREAM (out), NULL, NULL);
+
+	g_free (data);
 }
 
 static void
@@ -877,7 +1312,8 @@ export_to_ca65 (void)
 {
 	int count_screen = global_get_screen_count ();
 	for (int i = 0; i < count_screen; i++) {
-		export_to_screen_ca65 (i);
+		//export_full_dump_to_screen_ca65 (i);
+		export_little_code_to_screen_ca65 (i);
 	}
 }
 
