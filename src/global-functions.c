@@ -525,3 +525,17 @@ global_convert_setup_megatile_to_nes (guint8 megatile)
 
 	return ret;
 }
+
+static guint8 *fulldump_array;
+
+void
+global_set_fulldump_button (guint8 *b)
+{
+	fulldump_array = b;
+}
+
+guint8 *
+global_get_fulldump_button ()
+{
+	return fulldump_array;
+}

@@ -1328,9 +1328,19 @@ static void
 export_to_ca65 (void)
 {
 	int count_screen = global_get_screen_count ();
+	guint8 *is_dump = global_get_fulldump_button ();
+	if (is_dump == NULL) {
+		return;
+	}
 	for (int i = 0; i < count_screen; i++) {
-		//export_full_dump_to_screen_ca65 (i);
-		export_little_code_to_screen_ca65 (i);
+		switch (is_dump[i]) {
+			case 0:
+				export_little_code_to_screen_ca65 (i);
+				break;
+			case 1:
+				export_full_dump_to_screen_ca65 (i);
+				break;
+		}
 	}
 }
 

@@ -29,6 +29,11 @@
 		</screenshot>
 	</screenshots>
 	<releases>
+		<release date="2023-12-22" version="0.2.24">
+			<description>
+				<p>Implemented various of type of export code.</p>
+			</description>
+		</release>
 		<release date="2023-12-21" version="0.2.23">
 			<description>
 				<p>The exporting code is little now.</p>

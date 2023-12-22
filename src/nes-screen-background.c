@@ -55,6 +55,9 @@ struct _NesScreenBackground
 	GtkWidget   *btn_add_screen;
 	GtkWidget   *btn_remove_screen;
 	GtkWidget   *box_btn_screen;
+	GtkWidget   *fulldump_btn;
+	guint8			last_page;
+	guint8			*is_dump;
 };
 
 G_DEFINE_FINAL_TYPE (NesScreenBackground, nes_screen_background, GTK_TYPE_WINDOW)
@@ -198,10 +201,17 @@ create_new_screen (NesScreenBackground *self)
 		self->screens = temp;
 		self->screens[index] = screen;
 	}
+	guint8 *temp_i8 = NULL;
+	temp_i8 = realloc (self->is_dump, sizeof (guint8) * self->count);
+	if (temp_i8) {
+		self->is_dump = temp_i8;
+		self->is_dump[index] = 0;
+	}
 
 	set_tool_for_all_screen_by_own (self);
 	global_set_screen_count (self->count);
 	global_set_screens (self->screens);
+	global_set_fulldump_button (self->is_dump);
 }
 
 static void
@@ -215,6 +225,7 @@ remove_current_screen (NesScreenBackground *self)
 		for (int i = page; i < (self->count - 1); i++) {
 			self->scrolls[i + 0] = self->scrolls[i + 1];
 			self->screens[i + 0] = self->screens[i + 1];
+			self->is_dump[i + 0] = self->is_dump[i + 1];
 		}
 	}
 
@@ -280,6 +291,13 @@ screen_switch_page (GtkNotebook *note,
 	NesScreenBackground *self = NES_SCREEN_BACKGROUND (user_data);
 
 	global_nes_set_cur_screen (page_num);
+
+	if (self->is_dump) {
+		self->is_dump[self->last_page] = gtk_check_button_get_active (GTK_CHECK_BUTTON (self->fulldump_btn));
+		gtk_check_button_set_active (GTK_CHECK_BUTTON (self->fulldump_btn), self->is_dump[page_num]);
+	}
+
+	self->last_page = page_num;
 }
 
 static void
@@ -289,9 +307,11 @@ nes_screen_background_init (NesScreenBackground *self)
 
 	gtk_window_set_title (GTK_WINDOW (self), "Setup Screens for background");
 
+	self->last_page = 0;
 	self->count = 0;
 	self->screens = NULL;
 	self->scrolls = NULL;
+	self->is_dump = NULL;
 	gtk_window_set_hide_on_close (GTK_WINDOW (self), TRUE);
 
 	self->background = g_object_new (RETRO_TYPE_CANVAS,
@@ -431,6 +451,20 @@ nes_screen_background_init (NesScreenBackground *self)
 
 	self->btn_export = gtk_button_new_with_label ("EXPORT");
 	gtk_box_append (GTK_BOX (self->box_info), self->btn_export);
+
+	self->fulldump_btn = g_object_new (GTK_TYPE_CHECK_BUTTON,
+			"label", "Full dump screen",
+			NULL);
+
+	g_object_set (self->fulldump_btn, "has-tooltip", TRUE, NULL);
+	gtk_widget_set_tooltip_text (GTK_WIDGET (self->fulldump_btn),
+			"If you want the screen exported as a full screen bytes, "
+			"then toggle button. Such screen will sequentially fill up "
+			"the screen with null tile. If the button untangled, then "
+			"it is saving the position and tile of each tile in the code."
+			);
+
+	gtk_box_append (GTK_BOX (self->box_info), self->fulldump_btn);
 
 	g_signal_connect (self->btn_export, "clicked", G_CALLBACK (export_click), self);
 }
