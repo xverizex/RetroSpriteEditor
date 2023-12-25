@@ -51,7 +51,7 @@ struct _NesPalette
   guint32 count_back_x;
   guint32 count_back_y;
   guint32 cur_width_rect;
-  guint32 cur_heigh_rect;
+  guint32 cur_height_rect[2];
 	guint8 *tile_draw[N_NES];
 };
 
@@ -97,20 +97,24 @@ bank_memory_activate0 (GtkCheckButton *btn,
 	if (self->window_screen)
 		gtk_window_close (GTK_WINDOW (self->window_screen));
 
+	guint32 height_tile = global_get_height_by (0);
+
   CanvasSettings sets;
   sets.type_canvas   = TYPE_CANVAS_TILESET;
   sets.canvas_width  = DEFAULT_CANVAS_WIDTH;
   sets.canvas_height = DEFAULT_CANVAS_HEIGHT;
   sets.scale         = DEFAULT_CANVAS_SCALE;
   sets.palette_type  = DEFAULT_PALETTE_TYPE;
-  sets.width_rect   = 8;
-  sets.height_rect  = 8;
+  sets.width_rect    = 8;
+  sets.height_rect   = height_tile;
   sets.left_top      = TRUE;
+	sets.pos_height    = 0;
 
 	gtk_widget_set_visible (GTK_WIDGET (self->box_for_background), FALSE);
 
   self->cur_width_rect = sets.width_rect;
-  self->cur_heigh_rect = sets.height_rect;
+  self->cur_height_rect[0] = sets.height_rect;
+  self->cur_height_rect[1] = sets.height_rect;
 
   g_object_set (self->tileset, "settings", &sets, NULL);
 
@@ -133,8 +137,9 @@ bank_memory_activate0 (GtkCheckButton *btn,
     sets.scale         = -1;
     sets.palette_type  = -1;
     sets.width_rect    = 8;
-    sets.height_rect   = 8;
+    sets.height_rect   = height_tile;
     sets.left_top      = FALSE;
+		sets.pos_height    = 0;
     g_object_set (cnvs, "settings", &sets, NULL);
 
   }
@@ -148,22 +153,26 @@ bank_memory_activate1 (GtkCheckButton *btn,
                        gpointer        data)
 {
   NesPalette *self = NES_PALETTE (data);
+	guint32 height_tile = global_get_height_by (1);
+
   CanvasSettings sets;
   sets.type_canvas   = TYPE_CANVAS_TILESET;
   sets.canvas_width  = DEFAULT_CANVAS_WIDTH;
   sets.canvas_height = DEFAULT_CANVAS_HEIGHT;
   sets.scale         = DEFAULT_CANVAS_SCALE;
   sets.palette_type  = DEFAULT_PALETTE_TYPE;
-  sets.width_rect   =  8;
-  sets.height_rect  =  8;
+  sets.width_rect    = 8;
+  sets.height_rect   = height_tile;
   sets.left_top      = TRUE;
+	sets.pos_height    = 1;
 
 	gtk_widget_set_visible (GTK_WIDGET (self->box_for_background), TRUE);
 
   self->cur_palette = NES_BACKGROUND;
 
   self->cur_width_rect = sets.width_rect;
-  self->cur_heigh_rect = sets.height_rect;
+  self->cur_height_rect[0] = sets.height_rect;
+  self->cur_height_rect[1] = sets.height_rect;
 
   g_object_set (self->tileset, "settings", &sets, NULL);
 
@@ -183,8 +192,9 @@ bank_memory_activate1 (GtkCheckButton *btn,
     sets.scale         = -1;
     sets.palette_type  = -1;
     sets.width_rect    =  8;
-    sets.height_rect   =  8;
+    sets.height_rect   =  height_tile;
     sets.left_top      = FALSE;
+		sets.pos_height    = 1;
     g_object_set (cnvs, "settings", &sets, NULL);
   }
 
@@ -204,7 +214,10 @@ nes_palette_get_block (guint32 w, guint32 h, guint32 blkx, guint32 blky, guint32
 
 	guint32 indx = 0;
 	gint ndx = 0;
-	guint32 offset = blky * NES_CANVAS_SIZE * w;
+	/*
+	 * TODO: check this uncomment.
+	 */
+	guint32 offset = blky * NES_CANVAS_SIZE * h;
 	for (guint32 y = 0; y < h; y++) {
 		guint32 i = offset + y * NES_CANVAS_SIZE + blkx * w;
 		for (guint32 x = 0; x < w; x++) {
@@ -283,7 +296,8 @@ nes_palette_init (NesPalette *self)
 
 
   self->cur_width_rect = cs_front.width_rect;
-  self->cur_heigh_rect = cs_front.height_rect;
+  self->cur_height_rect[0] = cs_front.height_rect;
+  self->cur_height_rect[1] = cs_front.height_rect;
 
   CanvasSettings cs_back;
   cs_back.type_canvas   = TYPE_CANVAS_TILESET;
@@ -414,7 +428,7 @@ nes_palette_set_color_with_map (NesPalette *self,
 										guint32 										map)
 {
   guint32 x = params->blockx * self->cur_width_rect + params->x;
-  guint32 y = params->blocky * self->cur_heigh_rect + params->y;
+  guint32 y = params->blocky * self->cur_height_rect[map] + params->y;
 
   NesTilePoint *point = &(((NesTilePoint *) global_nes_get_map(map))[y * 128 + x]);
 
@@ -434,7 +448,7 @@ nes_palette_set_color (NesPalette *self,
 {
   guint32 cur_palette = self->cur_palette;
   guint32 x = params->blockx * self->cur_width_rect + params->x;
-  guint32 y = params->blocky * self->cur_heigh_rect + params->y;
+  guint32 y = params->blocky * self->cur_height_rect[cur_palette] + params->y;
 
   NesTilePoint *point = &(((NesTilePoint *) global_nes_get_map(cur_palette))[y * 128 + x]);
 
@@ -445,5 +459,15 @@ nes_palette_set_color (NesPalette *self,
   point->index = index;
 
   gtk_widget_queue_draw (GTK_WIDGET (self->tileset));
-
 }                                    
+
+void
+nes_palette_restructure ()
+{
+  guint32 cur_palette = global_nes->cur_palette;
+	guint32 height_tile;
+ 	height_tile	= global_get_height_by (0);
+	global_nes->cur_height_rect[0] = height_tile;
+ 	height_tile	= global_get_height_by (1);
+	global_nes->cur_height_rect[1] = height_tile;
+}

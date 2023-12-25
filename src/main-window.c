@@ -204,6 +204,8 @@ async_selected_project (GObject *source_object,
 	main_window_connect_widgets (self);
 	nes_palette_clean_map ();
 	project_open_nes (c_project);
+	global_restructure_canvas ();
+	nes_palette_restructure ();
 }
 
 static void
@@ -242,6 +244,7 @@ export_to_file (MainWindow *self)
 	DataForOutput dt;
 	global_get_data_for_output (&dt);
 
+	guint8 *d = dt.data;
 	g_output_stream_write (G_OUTPUT_STREAM (out), dt.data, dt.size, NULL, NULL);
 	g_output_stream_close (G_OUTPUT_STREAM (out), NULL, NULL);
 
@@ -272,6 +275,7 @@ main_window_create_nes_widgets (MainWindow *self)
 		global_nes_palette_alloc_memory_index (i, sizeof (guint32) * 4);
 	}
 
+	global_nes_set_height_alloc (2);
 	global_nes_palette_alloc_maps ();
 	global_nes_palette_init_map (0);
 	global_nes_palette_init_map (1);
@@ -315,6 +319,7 @@ main_window_create_nes_widgets (MainWindow *self)
   gtk_widget_set_vexpand (self->canvas, TRUE);
   gtk_widget_set_vexpand (self->frame_tools, TRUE);
 
+	guint32 height_tile = global_get_height_by (0);
   CanvasSettings cs;
   cs.type_canvas    = TYPE_CANVAS_TILESET;
   cs.canvas_width   = DEFAULT_CANVAS_WIDTH;
@@ -322,8 +327,9 @@ main_window_create_nes_widgets (MainWindow *self)
   cs.palette_type   = global_type_palette_get_cur_platform ();
   cs.scale          = DEFAULT_CANVAS_SCALE;
   cs.width_rect    = 8;
-  cs.height_rect   = 8;
-  cs.left_top       = FALSE;
+  cs.height_rect   = height_tile;
+  cs.left_top      = FALSE;
+	cs.pos_height    = 0;
   g_object_set (self->canvas, "settings", &cs, NULL);
 
   retro_canvas_shut_on_events (RETRO_CANVAS (self->canvas));

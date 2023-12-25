@@ -29,6 +29,7 @@ struct Project {
 	char *name_screen;
 	char *fullpath_to_project;
 	char *file_to_export;
+	char *file_tile_mode;
 	NesConfig nes;
 };
 
@@ -63,6 +64,11 @@ project_free (void)
 		g_free (prj->file_to_export);
 		prj->file_to_export = NULL;
 	}
+
+	if (prj->file_tile_mode) {
+		g_free (prj->file_tile_mode);
+		prj->file_tile_mode = NULL;
+	}
 }
 
 static void
@@ -76,6 +82,38 @@ project_free_and_alloc (void)
 {
 	project_free ();
 	project_alloc ();
+}
+static void
+write_nes_modes (void)
+{
+	GFile *file = g_file_new_for_path (prj->file_tile_mode);
+
+	GFileOutputStream *out = NULL;
+	if (g_file_query_exists (file, NULL)) {
+		out = g_file_replace (file,
+				NULL,
+				FALSE,
+				G_FILE_CREATE_REPLACE_DESTINATION,
+				NULL,
+				NULL);
+	} else {
+		out = g_file_create (file,
+			G_FILE_CREATE_NONE,
+			NULL,
+			NULL
+			);
+	}
+
+	guint32 count = global_nes_get_count_height ();
+	g_output_stream_write (G_OUTPUT_STREAM (out), &count, sizeof (guint32), NULL, NULL);
+
+	for (guint32 i = 0; i < count; i++) {
+		guint32 mode = global_get_height_by (i);
+		mode = mode == 8? 0: 1;
+		g_output_stream_write (G_OUTPUT_STREAM (out), &mode, sizeof (guint32), NULL, NULL);
+	}
+
+	g_output_stream_close (G_OUTPUT_STREAM (out), NULL, NULL);
 }
 
 static void
@@ -136,12 +174,15 @@ project_set_folder_and_name (const char *folder, const char *name)
 	prj->name = g_strdup (name);
 	prj->fullpath_to_project = g_strdup_printf ("%s/%s.rse", folder, name);
 	prj->file_to_export = g_strdup_printf ("%s/%s.chr", folder, name);
+	prj->file_tile_mode = g_strdup_printf ("%s/%s.tile_modes", folder, name);
 	prj->name_screen = g_strdup_printf ("screen");
 	memset (&prj->nes, 0, sizeof (NesConfig));
 
 	xmlTextWriterPtr writer;
 	write_header (&writer);
+	global_type_palette_set_cur (PLATFORM_PALETTE_NES, NES_TYPE_PALETTE_2C02);
 	write_nes_palettes (writer);
+	write_nes_modes ();
 	xmlTextWriterEndElement (writer);
 	xmlTextWriterEndDocument (writer);
 	xmlFreeTextWriter (writer);
@@ -259,6 +300,35 @@ read_tilemap_and_set_nes (void)
 
 	g_input_stream_close (G_INPUT_STREAM (input), NULL, NULL);
 
+	if (!prj->file_tile_mode) {
+		prj->file_tile_mode = g_strdup_printf ("%s/%s.tile_modes", prj->folder_path, prj->name);
+	}
+
+	GFile *file_tile_modes = g_file_new_for_path (prj->file_tile_mode);
+	if (!g_file_query_exists (file_tile_modes, NULL)) {
+		global_nes_set_height_by (0, 0);
+		global_nes_set_height_by (1, 0);
+		nes_palette_restructure ();
+	} else {
+		GFileInputStream *in = NULL;
+		in = g_file_read (file_tile_modes,
+				NULL,
+				NULL);
+
+		guint32 count_modes = 0;
+		g_input_stream_read (G_INPUT_STREAM (in), &count_modes, sizeof (guint32), NULL, NULL);
+		global_nes_set_height_alloc (count_modes);
+
+		for (guint32 i = 0; i < count_modes; i++) {
+			guint32 mode = 0;
+			g_input_stream_read (G_INPUT_STREAM (in), &mode, sizeof (guint32), NULL, NULL);
+			global_nes_set_height_by (i, mode);
+		}
+
+		g_input_stream_close (G_INPUT_STREAM (in), NULL, NULL);
+		nes_palette_restructure ();
+	}
+
 	int blkx = 0;
 	int blky = 0;
 	int yy = 0;
@@ -267,10 +337,14 @@ read_tilemap_and_set_nes (void)
 	for (int cur_bank = 0; cur_bank < 2; cur_bank++) {
 		blkx = 0;
 		blky = 0;
-		for (int tile = 0; tile < 256; tile++) {
+		guint32 height_tile = global_get_height_by (cur_bank);
+
+		guint32 count_tile = height_tile == 8? 256: 128;
+		guint32 full_y = height_tile == 8? 8: 24;
+		for (int tile = 0; tile < count_tile; tile++) {
 			int index = 0;
 
-			for (int y = 0; y < 8; y++) {
+			for (int y = 0; y < full_y;) {
 				for (int x = 7; x >= 0; x--) {
 					int found = 0;
 					unsigned char bit = 1 << x;
@@ -288,7 +362,7 @@ read_tilemap_and_set_nes (void)
 						}
 					}
 
-					yy = y;
+					yy = height_tile == 8? y: y < 16? y: y - 8;
 					xx = 7 - x;
 
 					NesParamPoint n;
@@ -297,6 +371,7 @@ read_tilemap_and_set_nes (void)
    				n.x = xx;
    				n.y = yy;
    				NesPalette *nes = nes_palette_get ();
+					static guint32 m = 0;
 
 					if (found > 0) {
     				nes_palette_set_color_with_map (nes, &n, index + 1, cur_bank);
@@ -305,8 +380,12 @@ read_tilemap_and_set_nes (void)
     				nes_palette_set_color_with_map (nes, &n, 0, cur_bank);
 					}
 				}
+				y++;
+				if (y == 8) {
+					y = 16;
+				}
 			}
-			t += 16;
+			t += height_tile == 8? 16: 32;
 			blkx++;
 			if (blkx >= 16) {
 				blkx = 0;
@@ -563,9 +642,8 @@ write_nes_screen (xmlTextWriterPtr writer)
 		save_nes_ref (i, screen_ref);
 		save_nes_screen_palettes (i, screen_palettes);
 	}
-	
-
 }
+
 
 void
 project_save_nes (void)
@@ -574,6 +652,7 @@ project_save_nes (void)
 	write_header (&writer);
 	write_nes_palettes (writer);
 	write_nes_screen (writer);
+	write_nes_modes ();
 	xmlTextWriterEndElement (writer);
 	xmlTextWriterEndDocument (writer);
 	xmlFreeTextWriter (writer);

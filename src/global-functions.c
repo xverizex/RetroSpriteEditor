@@ -184,11 +184,18 @@ form_data (FormData *fd)
 	guint32 heighty = fd->cnvs_height / fd->blky;
 	guint32 widthx  = fd->cnvs_width  / fd->blkx;
 
+	guint32 height_tile = fd->blky;
+
 	for (guint32 yy = 0; yy < heighty; yy++) {
 		for (guint32 xx = 0; xx < widthx; xx++) {
 			NesTilePoint *n = nes_palette_get_block (fd->blkx, fd->blky, xx, yy, fd->map_index);
 
-			guint8 tile[16] = {0, };
+			guint32 tile_size = height_tile == 8? 16: height_tile == 16? 32: 16;
+			guint8 tile[tile_size];
+			for (int i = 0; i < tile_size; i++) {
+				tile[i] = 0;
+			}
+
 			guint indx = 0;
 			guint ii = 0;
 			for (gint32 y = 0; y < 8; y++) {
@@ -213,10 +220,39 @@ form_data (FormData *fd)
 				tile[indx++] = pal;
 			}
 
-			for (guint i = 0; i < 16; i++) {
+			if (height_tile == 16) {
+				ii = 64;
+				for (gint32 y = 0; y < 8; y++) {
+					guint8 pal = 0;
+					for (gint32 x = 7; x >= 0; x--) {
+						if ((n[ii].index == 1) || (n[ii].index == 3)) {
+							pal |= (1 << x);
+						}
+						ii++;
+					}
+					tile[indx++] = pal;
+				}
+				ii = 64;
+				for (gint32 y = 0; y < 8; y++) {
+					guint8 pal = 0;
+					for (gint32 x = 7; x >= 0; x--) {
+						if ((n[ii].index == 2) || (n[ii].index == 3)) {
+							pal |= (1 << x);
+						}
+						ii++;
+					}
+					tile[indx++] = pal;
+				}
+			}
+
+			guint32 _height = height_tile == 8? 16: 32;
+
+			for (guint i = 0; i < _height; i++) {
 					*s = tile[i];
 					s++;
 			}
+
+			g_free (n);
 		}
 	}
 }
@@ -237,11 +273,12 @@ form_data_nes (DataForOutput *st)
 	fd.map_index = NES_BACKGROUND;
 	form_data (&fd);
 
+	guint32 height_tile = global_get_height_by (NES_SPRITE);
 	fd.st = st;
 	fd.cnvs_width = 128;
 	fd.cnvs_height = 128;
 	fd.blkx = 8;
-	fd.blky = 8;
+	fd.blky = height_tile;
 	fd.map_index = NES_SPRITE;
 	form_data (&fd);
 }
@@ -538,4 +575,57 @@ guint8 *
 global_get_fulldump_button ()
 {
 	return fulldump_array;
+}
+
+static guint32 *nes_height;
+static guint32 nes_count_height;
+
+guint32
+global_nes_get_count_height ()
+{
+	return nes_count_height;
+}
+
+void
+global_nes_set_height_alloc (guint32 size)
+{
+	nes_count_height = size;
+	nes_height = realloc (nes_height, sizeof (guint32) * size);
+	for (guint32 i = 0; i < size; i++) {
+		nes_height[i] = NES_MODE_8X8;
+	}
+}
+
+void
+global_nes_set_height_by (guint32 index, guint32 mode)
+{
+	nes_height[index] = mode;
+}
+
+static guint32
+global_nes_get_mode_by (guint32 index)
+{
+	return nes_height[index] == NES_MODE_8X8? 8: 16;
+}
+
+guint32
+global_get_height_by (guint32 index)
+{
+	switch (cur_platform) {
+		case PLATFORM_PALETTE_NES:
+			return global_nes_get_mode_by (index);
+		default:
+			return 0;
+			break;
+	}
+}
+
+void
+global_restructure_canvas ()
+{
+	RetroCanvas *drawing = retro_canvas_get_drawing_canvas ();
+	retro_canvas_restructure (RETRO_CANVAS (drawing));
+
+	RetroCanvas *tileset = retro_canvas_get_tileset ();
+	retro_canvas_restructure (RETRO_CANVAS (tileset));
 }

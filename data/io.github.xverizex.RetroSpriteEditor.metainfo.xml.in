@@ -29,6 +29,12 @@
 		</screenshot>
 	</screenshots>
 	<releases>
+		<release date="2023-12-25" version="0.2.25">
+			<description>
+				<p>Implemented sprite mode 8x16.</p>
+				<p>Fixed memory leak.</p>
+			</description>
+		</release>
 		<release date="2023-12-22" version="0.2.24">
 			<description>
 				<p>Implemented various of type of export code.</p>

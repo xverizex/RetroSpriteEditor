@@ -42,6 +42,7 @@ typedef struct _CanvasSettings {
   gint32 count_x;
   gint32 count_y;
   gboolean left_top;
+	guint32 pos_height;
 } CanvasSettings;
 
 enum {
@@ -68,6 +69,7 @@ void retro_canvas_set_type_palette (RetroCanvas *self,
 void retro_canvas_shut_on_event_click (RetroCanvas *self);
 void retro_canvas_shut_on_events (RetroCanvas *self);
 
+void retro_canvas_restructure (RetroCanvas *self);
 RetroCanvas *retro_canvas_get_drawing_canvas (void);
 RetroCanvas *retro_canvas_get_tileset (void);
 void retro_drawing_canvas_redraw (void);

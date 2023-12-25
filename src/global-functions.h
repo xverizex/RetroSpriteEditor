@@ -8,6 +8,12 @@ enum {
 };
 
 enum {
+	NES_MODE_8X8,
+	NES_MODE_8X16,
+	N_NES_MODE
+};
+
+enum {
   NES_TYPE_PALETTE_2C02,
   N_NES_TYPE_PALETTE
 };
@@ -50,3 +56,8 @@ void global_nes_set_cur_screen (int indx);
 guint8 global_convert_setup_megatile_to_nes (guint8 megatile);
 void global_set_fulldump_button (guint8 *b);
 guint8 *global_get_fulldump_button (void);
+void global_nes_set_height_alloc (guint32 size);
+void global_nes_set_height_by (guint32 index, guint32 mode);
+guint32 global_get_height_by (guint32 index);
+guint32 global_nes_get_count_height (void);
+void global_restructure_canvas (void);

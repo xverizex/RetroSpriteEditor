@@ -16,6 +16,7 @@ Draw your sprites and backgrounds with this program specially designed for retro
 * Two memory banks for sprites and backgrounds.
 * Showing the color index numbers.
 * Multi screens for saving an assembler code.
+* two sprite modes 8x8 and 8x16.
 
 ## LINKS
 * [flathub](https://flathub.org/apps/io.github.xverizex.RetroSpriteEditor)

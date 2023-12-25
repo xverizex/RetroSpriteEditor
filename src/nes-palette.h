@@ -33,46 +33,36 @@ G_END_DECLS
 
 
 
-NesTilePoint *
-nes_palette_get_map (guint32 index);
+NesTilePoint *nes_palette_get_map (guint32 index);
 
-NesTilePoint *
-nes_palette_get_block (guint32 w, guint32 h, guint32 x, guint32 y, guint32 index_map);
+NesTilePoint *nes_palette_get_block (guint32 w, guint32 h, guint32 x, guint32 y, guint32 index_map);
 
-NesPalette *
-nes_palette_get (void);
+NesPalette *nes_palette_get (void);
 
-void 
-nes_palette_redraw (void);
+void nes_palette_redraw (void);
 
-NesTilePoint *
-nes_palette_screen_get_color (NesPalette *self,
+NesTilePoint *nes_palette_screen_get_color (NesPalette *self,
                        guint32 x, guint32 y);
 
-NesTilePoint *
-nes_palette_get_color (NesPalette *self,
+NesTilePoint *nes_palette_get_color (NesPalette *self,
                        guint32 x, guint32 y);
 
-void 
-nes_palette_set_color (NesPalette *self,
+void nes_palette_set_color (NesPalette *self,
                     NesParamPoint               *params,
                     guint32                      index);
 
-void 
-nes_palette_set_color_with_map (NesPalette *self,
+void nes_palette_set_color_with_map (NesPalette *self,
                     NesParamPoint               *params,
                     guint32                      index,
 										guint32                      map);
 
-void
-nes_palette_clean_map (void);
+void nes_palette_clean_map (void);
 
-void
-nes_palette_set_draw_tile (NesPalette *nes,
+void nes_palette_set_draw_tile (NesPalette *nes,
 		guint32 bank,
 		guint32 x,
 		guint32 y,
 		guint8 is_tile);
 
-guint8 *
-nes_palette_get_draw_tile (NesPalette *nes, guint32 bank);
+guint8 * nes_palette_get_draw_tile (NesPalette *nes, guint32 bank);
+void nes_palette_restructure (void);
