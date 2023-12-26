@@ -71,7 +71,7 @@ retro_app_about_action (GSimpleAction *action,
                                             GVariant      *parameter,
                                             gpointer       user_data)
 {
-	static const char *developers[] = {"vi", NULL};
+	static const char *developers[] = {"xverizex", NULL};
 	RetroApp *self = user_data;
 	GtkWindow *window = NULL;
 
@@ -82,10 +82,10 @@ retro_app_about_action (GSimpleAction *action,
 	adw_show_about_window (window,
 	                       "application-name", "retrospriteeditor",
 	                       "application-icon", "io.github.xverizex.RetroSpriteEditor",
-	                       "developer-name", "vi",
+	                       "developer-name", "xverizex",
 	                       "version", "0.1.0",
 	                       "developers", developers,
-	                       "copyright", "© 2023 vi",
+	                       "copyright", "© 2023 xverizex",
 	                       NULL);
 }
 
