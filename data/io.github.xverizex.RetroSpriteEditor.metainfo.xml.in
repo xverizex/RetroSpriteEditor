@@ -29,7 +29,7 @@
 		</screenshot>
 	</screenshots>
 	<releases>
-		<release date="2023-12-28" version="0.2.26">
+		<release date="2023-12-28" version="0.2.27">
 			<description>
 				<p>Fixed the displaying megatiles on the screen.</p>
 				<p>Fixed overpixelization.</p>
