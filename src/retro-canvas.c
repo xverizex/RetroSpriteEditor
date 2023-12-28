@@ -1575,13 +1575,17 @@ draw_screen_background (cairo_t                 *cr,
   						colour_rgb_get_double_color (colours[indexed_colour[p->index - 1]], &r, &g, &b);
   						cairo_set_source_rgb (cr, r, g, b);
 
-  						cairo_rectangle (cr, 
-									self->px + cxx * 8 * c_pow (1, self->scale) + mx + offsetx + blkx, 
-									self->py + cyy * height_tile * c_pow (1, self->scale) + my + offsety + blky,
-											cpowx,
-											cpowy);
+							int pos_x = self->px + cxx * 8 * c_pow (1, self->scale) + mx + offsetx + blkx;
+							int pos_y = self->py + cyy * height_tile * c_pow (1, self->scale) + my + offsety + blky;
+							if ((posx + cpowx) > 0 && (pos_y + cpowy) > 0) {
+ 	 							cairo_rectangle (cr, 
+										pos_x,
+										pos_y,
+										cpowx,
+										cpowy);
 
-							cairo_fill (cr);
+								cairo_fill (cr);
+							}
 						}
 
 						mx += cpowx;
