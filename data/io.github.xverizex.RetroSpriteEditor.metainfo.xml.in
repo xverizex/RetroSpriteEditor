@@ -29,6 +29,11 @@
 		</screenshot>
 	</screenshots>
 	<releases>
+		<release date="2023-12-28" version="0.2.26">
+			<description>
+				<p>Fixed the displaying megatiles on the screen.</p>
+			</description>
+		</release>
 		<release date="2023-12-25" version="0.2.25">
 			<description>
 				<p>Implemented sprite mode 8x16.</p>

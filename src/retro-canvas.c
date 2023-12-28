@@ -217,7 +217,7 @@ draw_grid_nes_screen_megatile_palette (cairo_t           *cr,
   int yy = 0;
 
 
-  for (int cyy = 0; cyy < count_rect_h; cyy++) {
+  for (int cyy = 0; cyy < count_rect_h + 1; cyy++) {
     for (int cxx = 0; cxx < count_rect_w; cxx++) {
       cairo_rectangle (cr, x + xx, y + yy,
                        rect_w_result_size + 4,
@@ -1414,7 +1414,24 @@ draw_rectangle (cairo_t                 *cr,
 
   colour_rgb_get_double_color (colours[self->index_color[0]], &r, &g, &b);
   cairo_set_source_rgb (cr, r, g, b);
+	cairo_clip (cr);
   cairo_fill (cr);
+  cairo_rectangle (cr, x, y, w, h);
+  cairo_fill (cr);
+
+	int rx, ry, rwx, rwy;
+	rx = ry = rwx = rwy;
+	int end = 0;
+	for (int cyy = 0; cyy < count_rect_h + 1; cyy++) {
+		for (int cxx = 0; cxx < count_rect_w; cxx++) {
+			if (end == 0) {
+				rwx += rect_w_result_size + 4;
+				rwy += rect_h_result_size + 4;
+			}
+		}
+		end = 1;
+	}
+
 }
 
 void
@@ -1640,8 +1657,8 @@ draw_pixels (cairo_t                 *cr,
         colour_rgb_get_double_color (colours[self->index_color[p->index - 1]], &r, &g, &b);
         cairo_set_source_rgb (cr, r, g, b);
         int psize = c_pow (1, self->scale);
-        cairo_rectangle (cr, xx, yy, psize, psize);
-        cairo_fill (cr);
+       	cairo_rectangle (cr, xx, yy, psize, psize);
+       	cairo_fill (cr);
       }
       nx++;
       xx += c_pow (1, self->scale);
