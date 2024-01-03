@@ -6,10 +6,11 @@
 	<content_rating type="oars-1.1"/>
 	<name>Retro Sprite Editor</name>
 	<developer_name>Dmitrii Naidolinskii</developer_name>
-	<summary>The pixel editor for retro consoles.</summary>
+	<summary>Pixel Editor for Retro Consoles</summary>
 	<description>
-	  <p>The drawing tool for retro consoles.</p>
-		<p>Features for NES:</p> 
+		<p>Available platforms: NES</p>
+
+		<p>Features for NES:</p>
 		<ul>
 			<li>Multiscreen for saving background and load via assembler code.</li>
 			<li>Button pencil for drawing pixels.</li>
@@ -21,12 +22,11 @@
 			<li>Megatile setup</li>
 			<li>Sprite modes: 8x8, 8x16</li>
 		</ul>
-
-		<p>Available platforms: NES</p>
 	</description>
 	<screenshots>
 		<screenshot type="default">
-			<image>https://i.imgur.com/mqKb7r0.png</image>
+		  <caption>Main Window with a drawing</caption>
+			<image>https://raw.githubusercontent.com/xverizex/RetroSpriteEditor/0.2.30/screenshots/0.png</image>
 		</screenshot>
 	</screenshots>
 	<releases>
@@ -108,4 +108,5 @@
 	<url type="homepage">https://github.com/xverizex/RetroSpriteEditor</url>
 	<url type="donation">https://www.donationalerts.com/r/xverizex</url>
 	<url type="bugtracker">https://github.com/xverizex/RetroSpriteEditor/issues</url>
+  <url type="vcs-browser">https://github.com/xverizex/RetroSpriteEditor</url>
 </component>

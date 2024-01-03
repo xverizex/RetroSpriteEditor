@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=retrospriteeditor
+Name=Retro Sprite Editor
 Exec=retrospriteeditor
 Icon=io.github.xverizex.RetroSpriteEditor
 Terminal=false
 Type=Application
-Categories=GTK;
+Categories=Graphics;GNOME;GTK;
 StartupNotify=true
