@@ -2,7 +2,11 @@
 
 # Retro Sprite Editor
 Draw your sprites and backgrounds with this program specially designed for retro consoles.
-### [Consider donating to help this software's development][donate]
+
+## Donate ❤️
+Please consider donating to help development as this software is completely free and open source.
+
+### [Donate Here][donate]
 
 ## Screenshot
 ![screenshot](screenshots/0.png)
@@ -11,9 +15,8 @@ Draw your sprites and backgrounds with this program specially designed for retro
 [![Download on Flathub](https://dl.flathub.org/assets/badges/flathub-badge-en.svg)][flathub]
 
 ## Features
-* Save as NES format
+* Saving as NES format
 * Pencil for Pixel Art
-* Software is FOSS
 * Button for Moving Tiles on the Canvas
 * Button for Swapping Tiles
 
