@@ -31,6 +31,8 @@
 #include "project.h"
 #include "global-functions.h"
 #include "nes-palette.h"
+#include "nes-list-palettes.h"
+#include "nes-screen-background.h"
 #include <libxml/parser.h>
 
 #define DEFAULT_CANVAS_WIDTH             128
@@ -48,6 +50,7 @@ struct _MainWindow
 
   GtkWidget           *header_bar;
   GtkWidget           *general_layout_nes;
+  GtkWidget           *screen_layout_nes;
   GtkWidget           *menu_button;
   GtkWidget           *vert_layout;
   GtkWidget           *palette;
@@ -60,10 +63,15 @@ struct _MainWindow
   GtkWidget           *tool_button_mov;
   GtkWidget           *tool_button_swap;
 	GtkWidget  					*new_project_nes_window;
+	GtkWidget						*hbox_nes_title_buttons;
+	GtkWidget						*btn_nes_pixel_drawing;
+	GtkWidget						*btn_nes_screen;
+	GtkWidget 					*window_screen;
 	int  								first;
 	gint32							last_platform;
 	guint32							cur_platform;
 	guint32							cur_palette;
+	guint32							last_bank;
 };
 
 G_DEFINE_FINAL_TYPE (MainWindow, main_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -153,6 +161,8 @@ main_window_connect_widgets (MainWindow *self)
 				global_type_palette_set_cur (PLATFORM_PALETTE_NES, NES_TYPE_PALETTE_2C02);
 				self->last_platform = PLATFORM_PALETTE_NES;
 				gtk_widget_set_visible (self->general_layout_nes, TRUE);
+				gtk_widget_set_visible (self->hbox_nes_title_buttons, TRUE);
+				gtk_widget_set_visible (self->screen_layout_nes, FALSE);
 				break;
 			default:
 				break;
@@ -163,6 +173,8 @@ main_window_connect_widgets (MainWindow *self)
 	switch (self->last_platform) {
 		case PLATFORM_PALETTE_NES:
 			gtk_widget_set_visible (self->general_layout_nes, FALSE);
+			gtk_widget_set_visible (self->screen_layout_nes, FALSE);
+			gtk_widget_set_visible (self->hbox_nes_title_buttons, FALSE);
 			global_type_palette_set_cur (NO_PLATFORM, 0);
 			break;
 		default:
@@ -173,6 +185,8 @@ main_window_connect_widgets (MainWindow *self)
 			global_type_palette_set_cur (PLATFORM_PALETTE_NES, NES_TYPE_PALETTE_2C02);
 			self->last_platform = PLATFORM_PALETTE_NES;
 			gtk_widget_set_visible (self->general_layout_nes, TRUE);
+			gtk_widget_set_visible (self->screen_layout_nes, FALSE);
+			gtk_widget_set_visible (self->hbox_nes_title_buttons, TRUE);
 			break;
 		default:
 			break;
@@ -265,6 +279,31 @@ action_save_project (GSimpleAction *simple,
 	project_save_nes ();
 }
 
+static void
+nes_pixel_drawing_toggled (GtkCheckButton *btn, gpointer user_data)
+{
+	MainWindow *self = MAIN_WINDOW (user_data);
+
+	global_set_cur_bank (NES_SPRITE);
+	nes_list_palette_set_bank (NES_SPRITE);
+	nes_palette_set_cur (NES_SPRITE);
+
+	gtk_widget_set_visible (self->general_layout_nes, TRUE);
+	gtk_widget_set_visible (self->screen_layout_nes, FALSE);
+}
+
+static void
+nes_screen_toggled (GtkCheckButton *btn, gpointer user_data)
+{
+	MainWindow *self = MAIN_WINDOW (user_data);
+
+	global_set_cur_bank (NES_BACKGROUND);
+	nes_list_palette_set_bank (NES_BACKGROUND);
+	nes_palette_set_cur (NES_BACKGROUND);
+
+	gtk_widget_set_visible (self->general_layout_nes, FALSE);
+	gtk_widget_set_visible (self->screen_layout_nes, TRUE);
+}
 
 void
 main_window_create_nes_widgets (MainWindow *self)
@@ -413,6 +452,28 @@ main_window_create_nes_widgets (MainWindow *self)
 			"<span weight=\"bold\">A swap tool </span><span>- Exchange tiles between each other.</span>");
 
 	global_type_palette_set_cur (NO_PLATFORM, 0);
+
+	self->hbox_nes_title_buttons = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
+	self->btn_nes_pixel_drawing = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", "DRAWING", NULL);
+	self->btn_nes_screen = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", "SCREEN", NULL);
+
+	gtk_box_append (GTK_BOX (self->hbox_nes_title_buttons), self->btn_nes_pixel_drawing);
+	gtk_box_append (GTK_BOX (self->hbox_nes_title_buttons), self->btn_nes_screen);
+
+	adw_header_bar_set_title_widget (ADW_HEADER_BAR (self->header_bar),
+			self->hbox_nes_title_buttons);
+
+	gtk_toggle_button_set_group (GTK_TOGGLE_BUTTON (self->btn_nes_pixel_drawing),
+			GTK_TOGGLE_BUTTON (self->btn_nes_screen));
+
+	g_signal_connect (self->btn_nes_pixel_drawing, "toggled", G_CALLBACK (nes_pixel_drawing_toggled), self);
+	g_signal_connect (self->btn_nes_screen, "toggled", G_CALLBACK (nes_screen_toggled), self);
+
+	self->window_screen = g_object_new (NES_TYPE_SCREEN_BACKGROUND, NULL);
+	gtk_box_append (GTK_BOX (self->screen_layout_nes), self->window_screen);
+
+	gtk_box_append (GTK_BOX (self->vert_layout), self->screen_layout_nes);
+	gtk_widget_set_visible (GTK_WIDGET (self->screen_layout_nes), FALSE);
 }
 
 static void
@@ -447,6 +508,7 @@ main_window_init (MainWindow *self)
 	global = self;
 	self->first = 0;
 	self->last_platform = -1;
+	self->last_bank = NES_SPRITE;
 
 	xmlInitParser ();
 
@@ -491,6 +553,7 @@ main_window_init (MainWindow *self)
   self->vert_layout = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 
   self->general_layout_nes = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+	self->screen_layout_nes = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
   adw_application_window_set_content (ADW_APPLICATION_WINDOW (self), self->vert_layout);
   gtk_window_set_default_size (GTK_WINDOW (self), DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);

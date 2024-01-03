@@ -180,18 +180,6 @@ nes_new_project_init (NesNewProject *self)
 	self->frame_tileset = g_object_new (GTK_TYPE_FRAME,
 			"label", "Tileset map", NULL);
 
-#if 0
-	char *tile8x8 = g_strdup_printf ("8x8");
-	GListStore *model_tileset = g_list_store_new (G_TYPE_POINTER);
-	g_list_store_append (model_tileset, tile8x8);
-	self->dropdown_tileset = gtk_drop_down_new (G_LIST_MODEL (model_tileset), NULL); // GListModel; GtkExpression; 
-	
-	GtkWidget *box_tileset = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
-	gtk_box_append (GTK_BOX (box_tileset), self->dropdown_tileset);
-	gtk_frame_set_child (GTK_FRAME (self->frame_tileset), box_tileset);
-
-	gtk_box_append (GTK_BOX (self->vert_box), self->frame_tileset);
-#endif
 	self->frame_project_name = g_object_new (GTK_TYPE_FRAME,
 			"label", "Project Name", NULL);
 	self->entry_project_name = gtk_entry_new ();

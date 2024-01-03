@@ -1,7 +1,7 @@
 project('retrospriteeditor', 'c',
-          version: '0.2.27',
+          version: '0.2.28',
     meson_version: '>= 0.62.0',
-  default_options: [ 'warning_level=2', 'werror=false', 'c_std=gnu11', ],
+  default_options: [ 'warning_level=0', 'werror=false', 'c_std=gnu08', ],
 )
 
 i18n = import('i18n')

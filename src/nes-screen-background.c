@@ -30,7 +30,7 @@
 
 struct _NesScreenBackground
 {
-  GtkWindow  parent_instance;
+  GtkFrame  parent_instance;
 	gint        count;
 
 	guint32  		cur_tool_back;
@@ -60,7 +60,7 @@ struct _NesScreenBackground
 	guint8			*is_dump;
 };
 
-G_DEFINE_FINAL_TYPE (NesScreenBackground, nes_screen_background, GTK_TYPE_WINDOW)
+G_DEFINE_FINAL_TYPE (NesScreenBackground, nes_screen_background, GTK_TYPE_FRAME)
 
 static void
 nes_screen_background_class_init (NesScreenBackgroundClass *klass)
@@ -305,14 +305,11 @@ nes_screen_background_init (NesScreenBackground *self)
 {
 	global = self;
 
-	gtk_window_set_title (GTK_WINDOW (self), "Setup Screens for background");
-
 	self->last_page = 0;
 	self->count = 0;
 	self->screens = NULL;
 	self->scrolls = NULL;
 	self->is_dump = NULL;
-	gtk_window_set_hide_on_close (GTK_WINDOW (self), TRUE);
 
 	self->background = g_object_new (RETRO_TYPE_CANVAS,
 			NULL);
@@ -403,13 +400,11 @@ nes_screen_background_init (NesScreenBackground *self)
 	gtk_box_append (GTK_BOX (self->box_main), self->box_info);
 	gtk_box_append (GTK_BOX (self->box_info), self->frame_grid_megatile);
 
-	gtk_window_set_child (GTK_WINDOW (self), self->box_main);
+	gtk_frame_set_child (GTK_FRAME (self), self->box_main);
 
 	retro_canvas_shut_on_events_nes_screen (RETRO_CANVAS (self->background));
 
 	retro_canvas_set_copy (RETRO_CANVAS (self->background), 1);
-
-	gtk_window_set_default_size (GTK_WINDOW (self), 1280, 720);
 
 	self->frame_tools = g_object_new (GTK_TYPE_FRAME, "label", "Tools", NULL);
 	self->grid_tools = gtk_grid_new ();

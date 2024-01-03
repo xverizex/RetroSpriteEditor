@@ -38,6 +38,7 @@ NesTilePoint *nes_palette_get_map (guint32 index);
 NesTilePoint *nes_palette_get_block (guint32 w, guint32 h, guint32 x, guint32 y, guint32 index_map);
 
 NesPalette *nes_palette_get (void);
+void nes_palette_set_cur (guint32 c);
 
 void nes_palette_redraw (void);
 

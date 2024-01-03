@@ -26,7 +26,7 @@ G_BEGIN_DECLS
 
 #define NES_TYPE_SCREEN_BACKGROUND (nes_screen_background_get_type())
 
-G_DECLARE_FINAL_TYPE (NesScreenBackground, nes_screen_background, NES, SCREEN_BACKGROUND, GtkWindow)
+G_DECLARE_FINAL_TYPE (NesScreenBackground, nes_screen_background, NES, SCREEN_BACKGROUND, GtkFrame)
 
 G_END_DECLS
 

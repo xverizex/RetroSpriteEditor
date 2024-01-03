@@ -19,6 +19,7 @@
 			<li>Four palettes for each bank.</li>
 			<li>Button to copy from background to screen.</li>
 			<li>Megatile setup</li>
+			<li>Sprite modes: 8x8, 8x16</li>
 		</ul>
 
 		<p>Available platforms: NES</p>
@@ -29,6 +30,11 @@
 		</screenshot>
 	</screenshots>
 	<releases>
+		<release date="2024-01-03" version="0.2.28">
+			<description>
+				<p>Switch to new UI Design.</p>
+			</description>
+		</release>
 		<release date="2023-12-28" version="0.2.27">
 			<description>
 				<p>Fixed the displaying megatiles on the screen.</p>
