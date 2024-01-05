@@ -1,3 +1,5 @@
+subdir('icons')
+
 desktop_file = i18n.merge_file(
         input: 'io.github.xverizex.RetroSpriteEditor.desktop.in',
        output: 'io.github.xverizex.RetroSpriteEditor.desktop',
@@ -32,5 +34,3 @@ compile_schemas = find_program('glib-compile-schemas', required: false, disabler
 test('Validate schema file',
      compile_schemas,
      args: ['--strict', '--dry-run', meson.current_source_dir()])
-
-subdir('icons')

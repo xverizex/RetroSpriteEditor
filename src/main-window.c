@@ -454,14 +454,17 @@ main_window_create_nes_widgets (MainWindow *self)
 	global_type_palette_set_cur (NO_PLATFORM, 0);
 
 	self->hbox_nes_title_buttons = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
-	self->btn_nes_pixel_drawing = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", "DRAWING", NULL);
-	self->btn_nes_screen = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", "SCREEN", NULL);
+	self->btn_nes_pixel_drawing = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", "Drawing", NULL);
+	self->btn_nes_screen = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", "Screen", NULL);
 
 	gtk_box_append (GTK_BOX (self->hbox_nes_title_buttons), self->btn_nes_pixel_drawing);
 	gtk_box_append (GTK_BOX (self->hbox_nes_title_buttons), self->btn_nes_screen);
 
 	adw_header_bar_set_title_widget (ADW_HEADER_BAR (self->header_bar),
 			self->hbox_nes_title_buttons);
+
+	// Make the Header Bar use the flat design without the new stuff
+	gtk_widget_add_css_class (GTK_WIDGET (self->header_bar), "flat");
 
 	gtk_toggle_button_set_group (GTK_TOGGLE_BUTTON (self->btn_nes_pixel_drawing),
 			GTK_TOGGLE_BUTTON (self->btn_nes_screen));
@@ -482,6 +485,7 @@ action_new_project_nes (GSimpleAction *simple,
 		gpointer user_data)
 {
 	MainWindow *self = MAIN_WINDOW (user_data);
+        gtk_window_set_transient_for (GTK_WINDOW (self->new_project_nes_window), GTK_WINDOW(self));
 	gtk_window_present (GTK_WINDOW (self->new_project_nes_window));
 }
 
@@ -539,6 +543,7 @@ main_window_init (MainWindow *self)
 	g_menu_append_submenu (menu_root, "Import", G_MENU_MODEL (menu_import));
 	g_menu_append (menu_root, "Save", "win.save_project");
 	g_menu_append (menu_root, "Export", "win.export");
+	g_menu_append (menu_root, "About Retro Sprite Editor", "app.about");
 
 	self->new_project_nes_window = g_object_new (NES_TYPE_NEW_PROJECT,
 			NULL);
@@ -546,7 +551,8 @@ main_window_init (MainWindow *self)
 	gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (self->menu_button), G_MENU_MODEL (menu_root));
 
   self->header_bar = adw_header_bar_new ();
-  adw_header_bar_set_decoration_layout (ADW_HEADER_BAR (self->header_bar), "icon:minimize,maximize,close");
+  // The app should respect the decor layout the user has set as there is not any obvious reason to force minimize, maximize & close buttons.
+  //adw_header_bar_set_decoration_layout (ADW_HEADER_BAR (self->header_bar), "icon:minimize,maximize,close");
   adw_header_bar_set_show_end_title_buttons (ADW_HEADER_BAR (self->header_bar), TRUE);
 	adw_header_bar_pack_end (ADW_HEADER_BAR (self->header_bar), self->menu_button);
 

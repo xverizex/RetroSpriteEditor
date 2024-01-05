@@ -34,6 +34,8 @@ main (int   argc,
 	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 	textdomain (GETTEXT_PACKAGE);
+	// Make sure all windows from this app use the same WM_CLASS as the main window does. (Shows the right icon for child windows on desktops like KDE Plasma)
+	g_set_prgname ("io.github.xverizex.RetroSpriteEditor");
 
 	app = retro_app_new ("io.github.xverizex.RetroSpriteEditor", G_APPLICATION_DEFAULT_FLAGS);
 	ret = g_application_run (G_APPLICATION (app), argc, argv);

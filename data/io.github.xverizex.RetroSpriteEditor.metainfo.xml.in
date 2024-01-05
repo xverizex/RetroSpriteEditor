@@ -15,7 +15,7 @@
       <li>Button for Moving Tiles on the Canvas</li>
       <li>Button for Swapping Tiles</li>
     </ul>
-    <p>Features for NES platform:</p>
+    <p>Features for NES Platform:</p>
     <ul>
       <li>Saving as NES Format</li>
       <li>Multiscreen for saving background and load via assembler code.</li>

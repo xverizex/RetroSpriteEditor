@@ -4,12 +4,17 @@ project('retrospriteeditor', 'c',
   default_options: [ 'werror=false', 'c_std=gnu99', ],
 )
 
+application_name = 'Retro Sprite Editor'
+developer_name = 'xverizex'
+
 i18n = import('i18n')
 gnome = import('gnome')
 cc = meson.get_compiler('c')
 
 config_h = configuration_data()
+config_h.set_quoted('APPLICATION_NAME', application_name)
 config_h.set_quoted('PACKAGE_VERSION', meson.project_version())
+config_h.set_quoted('DEVELOPER_NAME', developer_name)
 config_h.set_quoted('GETTEXT_PACKAGE', 'retrospriteeditor')
 config_h.set_quoted('LOCALEDIR', get_option('prefix') / get_option('localedir'))
 configure_file(output: 'config.h', configuration: config_h)
