@@ -4,5 +4,5 @@ Exec=retrospriteeditor
 Icon=io.github.xverizex.RetroSpriteEditor
 Terminal=false
 Type=Application
-Categories=Graphics;GNOME;GTK;
+Categories=Graphics;2DGraphics;GNOME;GTK;
 StartupNotify=true

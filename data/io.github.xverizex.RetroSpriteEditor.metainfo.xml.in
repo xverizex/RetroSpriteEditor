@@ -1,112 +1,133 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <component type="desktop">
-	<id>io.github.xverizex.RetroSpriteEditor</id>
-	<metadata_license>CC0-1.0</metadata_license>
-	<project_license>GPL-3.0-or-later</project_license>
-	<content_rating type="oars-1.1"/>
-	<name>Retro Sprite Editor</name>
-	<developer_name>Dmitrii Naidolinskii</developer_name>
-	<summary>Pixel Editor for Retro Consoles</summary>
-	<description>
-		<p>Available platforms: NES</p>
-
-		<p>Features for NES:</p>
-		<ul>
-			<li>Multiscreen for saving background and load via assembler code.</li>
-			<li>Button pencil for drawing pixels.</li>
-			<li>Button mov for moving tiles.</li>
-			<li>Button swap for exchange tiles each other.</li>
-			<li>Two banks memory.</li>
-			<li>Four palettes for each bank.</li>
-			<li>Button to copy from background to screen.</li>
-			<li>Megatile setup</li>
-			<li>Sprite modes: 8x8, 8x16</li>
-		</ul>
-	</description>
-	<screenshots>
-		<screenshot type="default">
-			<caption>A Pixel Drawing</caption>
-			<image>https://raw.githubusercontent.com/xverizex/RetroSpriteEditor/0.2.30/screenshots/0.png</image>
-		</screenshot>
-	</screenshots>
-	<releases>
-		<release date="2024-01-03" version="0.2.28">
-			<description>
-				<p>Switch to new UI Design.</p>
-			</description>
-		</release>
-		<release date="2023-12-28" version="0.2.27">
-			<description>
-				<p>Fixed the displaying megatiles on the screen.</p>
-				<p>Fixed overpixelization.</p>
-			</description>
-		</release>
-		<release date="2023-12-25" version="0.2.25">
-			<description>
-				<p>Implemented sprite mode 8x16.</p>
-				<p>Fixed memory leak.</p>
-			</description>
-		</release>
-		<release date="2023-12-22" version="0.2.24">
-			<description>
-				<p>Implemented various of type of export code.</p>
-			</description>
-		</release>
-		<release date="2023-12-21" version="0.2.23">
-			<description>
-				<p>The exporting code is little now.</p>
-			</description>
-		</release>
-		<release date="2023-12-21" version="0.2.21">
-			<description>
-				<p>Fixed the copying from background to screen.</p>
-			</description>
-		</release>
-		<release date="2023-12-18" version="0.2.20">
-			<description>
-				<p>Fixed the megatile palette export to nes as asm code.</p>
-			</description>
-		</release>
-		<release date="2023-12-18" version="0.2.10">
-			<description>
-				<p>Added two button. The moving tile and the swap tile.</p>
-				<p>Added import NES CHR.</p>
-			</description>
-		</release>
-		<release date="2023-12-17" version="0.2.8">
-			<description>
-				<p>Added multiscreen saving.</p>
-			</description>
-		</release>
-		<release date="2023-12-17" version="0.2.6">
-			<description>
-				<p>Fixed exporting to asm code.</p>
-			</description>
-		</release>
-		<release date="2023-12-15" version="0.2.4">
-			<description>
-				<p>Added feature to clear tiles on screen.</p>
-			</description>
-		</release>
-		<release date="2023-12-15" version="0.2.2">
-			<description>
-				<p>Added posibility to set screen NES and export to ca65.</p>
-			</description>
-		</release>
-		<release date="2023-12-8" version="0.1.30">
-			<description>
-				<p>Fix little bugs.</p>
-			</description>
-		</release>
-		<release date="2023-12-7" version="0.1.22">
-			<description>
-				<p>The first version with NES support to draw.</p>
-			</description>
-		</release>
-	</releases>
-	<update_contact>horisontdawn@yandex.ru</update_contact>
-	<url type="homepage">https://github.com/xverizex/RetroSpriteEditor</url>
-	<url type="donation">https://www.donationalerts.com/r/xverizex</url>
-	<url type="bugtracker">https://github.com/xverizex/RetroSpriteEditor/issues</url>
+  <id>io.github.xverizex.RetroSpriteEditor</id>
+  <name>Retro Sprite Editor</name>
+  <summary>Pixel Editor for Retro Consoles</summary>
+  <developer_name>Dmitrii Naidolinskii</developer_name>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <update_contact>horisontdawn@yandex.ru</update_contact>
+  <description>
+    <p>Available platforms: NES</p>
+    <p>Features:</p>
+    <ul>
+      <li>Pencil Button for Drawing Pixels</li>
+      <li>Button for Moving Tiles on the Canvas</li>
+      <li>Button for Swapping Tiles</li>
+    </ul>
+    <p>Features for NES:</p>
+    <ul>
+      <li>Saving as NES Format</li>
+      <li>Multiscreen for saving background and load via assembler code.</li>
+      <li>Two memory banks for sprites and backgrounds.</li>
+      <li>4 palettes to choose from for each bank, which can be customized.</li>
+      <li>Button to copy from background to screen.</li>
+      <li>Megatile Setup</li>
+      <li>Sprite Modes: 8x8, 8x16</li>
+    </ul>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <caption>A Pixel Drawing</caption>
+      <image type="source">https://raw.githubusercontent.com/xverizex/RetroSpriteEditor/0.2.30/screenshots/0.png</image>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="0.2.28" date="2024-01-03" type="stable">
+      <description>
+        <p>Switch to new UI Design.</p>
+      </description>
+    </release>
+    <release version="0.2.27" date="2023-12-28" type="stable">
+      <description>
+        <p>Fixed the displaying megatiles on the screen.</p>
+        <p>Fixed overpixelization.</p>
+      </description>
+    </release>
+    <release version="0.2.25" date="2023-12-25" type="stable">
+      <description>
+        <p>Implemented sprite mode 8x16.</p>
+        <p>Fixed memory leak.</p>
+      </description>
+    </release>
+    <release version="0.2.24" date="2023-12-22" type="stable">
+      <description>
+        <p>Implemented various of type of export code.</p>
+      </description>
+    </release>
+    <release version="0.2.23" date="2023-12-21" type="stable">
+      <description>
+        <p>The exporting code is little now.</p>
+      </description>
+    </release>
+    <release version="0.2.21" date="2023-12-21" type="stable">
+      <description>
+        <p>Fixed the copying from background to screen.</p>
+      </description>
+    </release>
+    <release version="0.2.20" date="2023-12-18" type="stable">
+      <description>
+        <p>Fixed the megatile palette export to nes as asm code.</p>
+      </description>
+    </release>
+    <release version="0.2.10" date="2023-12-18" type="stable">
+      <description>
+        <p>Added two button. The moving tile and the swap tile.</p>
+        <p>Added import NES CHR.</p>
+      </description>
+    </release>
+    <release version="0.2.8" date="2023-12-17" type="stable">
+      <description>
+        <p>Added multiscreen saving.</p>
+      </description>
+    </release>
+    <release version="0.2.6" date="2023-12-17" type="stable">
+      <description>
+        <p>Fixed exporting to asm code.</p>
+      </description>
+    </release>
+    <release version="0.2.4" date="2023-12-15" type="stable">
+      <description>
+        <p>Added feature to clear tiles on screen.</p>
+      </description>
+    </release>
+    <release version="0.2.2" date="2023-12-15" type="stable">
+      <description>
+        <p>Added posibility to set screen NES and export to ca65.</p>
+      </description>
+    </release>
+    <release version="0.1.30" date="2000-01-01" type="stable">
+      <description>
+        <p>Fix little bugs.</p>
+      </description>
+    </release>
+    <release version="0.1.22" date="2000-01-01" type="stable">
+      <description>
+        <p>The first version with NES support to draw.</p>
+      </description>
+    </release>
+  </releases>
+  <url type="homepage">https://github.com/xverizex/RetroSpriteEditor</url>
+  <url type="bugtracker">https://github.com/xverizex/RetroSpriteEditor/issues</url>
+  <url type="donation">https://www.donationalerts.com/r/xverizex</url>
   <url type="vcs-browser">https://github.com/xverizex/RetroSpriteEditor</url>
+  <categories>
+    <category>Graphics</category>
+    <category>2DGraphics</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <provides>
+    <binary>retrospriteeditor</binary>
+    <id>io.github.xverizex.RetroSpriteEditor</id>
+  </provides>
+  <keywords>
+    <keyword>2D</keyword>
+    <keyword>2D Graphics</keyword>
+    <keyword>Graphics</keyword>
+    <keyword>Retro</keyword>
+    <keyword>Retro Art</keyword>
+    <keyword>Pixel Art</keyword>
+    <keyword>NES</keyword>
+    <keyword>Console</keyword>
+  </keywords>
 </component>
