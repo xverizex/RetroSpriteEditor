@@ -25,7 +25,7 @@
 	</description>
 	<screenshots>
 		<screenshot type="default">
-		  <caption>Main Window with a drawing</caption>
+			<caption>A Pixel Drawing</caption>
 			<image>https://raw.githubusercontent.com/xverizex/RetroSpriteEditor/0.2.30/screenshots/0.png</image>
 		</screenshot>
 	</screenshots>
