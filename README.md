@@ -1,25 +1,32 @@
-# RetroSpriteEditor
+<img style="vertical-align: middle;" src="data/icons/hicolor/scalable/apps/io.github.xverizex.RetroSpriteEditor.svg" width="128" height="128" align="left">
 
-![screenshot](screenshots/0.png)
-
+# Retro Sprite Editor
 Draw your sprites and backgrounds with this program specially designed for retro consoles.
 
-## FEATURES
-* saving to NES format
-* pencil for pixel art
-* completely free software
-* The button moving for moving tiles on the canvas.
-* The button swapping for exchange tiles each other.
+## Donate ❤️
+Please consider donating to help development as this software is completely free and open source.
+
+### [Donate Here][donate]
+
+## Screenshot
+![screenshot](screenshots/0.png)
+
+## Download
+[![Download on Flathub](https://dl.flathub.org/assets/badges/flathub-badge-en.svg)][flathub]
+
+## Features
+* Pencil Button for Drawing Pixels
+* Button for Moving Tiles on the Canvas
+* Button for Swapping Tiles
 
 ## NES
-* 4 palettes to choose from, which can be customized.
+* Saving as NES Format
+* 4 palettes to choose from for each bank, which can be customized.
 * Two memory banks for sprites and backgrounds.
 * Showing the color index numbers.
-* Multi screens for saving an assembler code.
-* two sprite modes 8x8 and 8x16.
+* Multiscreen for saving background and load via assembler code.
+* Megatile Setup
+* Sprite Modes: 8x8 and 8x16.
 
-## LINKS
-* [flathub](https://flathub.org/apps/io.github.xverizex.RetroSpriteEditor)
-
-## Donate
-* [Donation Alerts](https://www.donationalerts.com/r/xverizex)
+[flathub]: https://flathub.org/apps/io.github.xverizex.RetroSpriteEditor
+[donate]: https://www.donationalerts.com/r/xverizex
