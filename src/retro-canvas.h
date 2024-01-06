@@ -1,4 +1,4 @@
-/* main-canvas.h
+/* retro-canvas.h
  *
  * Copyright 2023 vi
  *

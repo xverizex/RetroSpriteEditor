@@ -1,4 +1,4 @@
-/* retrospriteeditor-application.h
+/* retro-app.h
  *
  * Copyright 2023 vi
  *

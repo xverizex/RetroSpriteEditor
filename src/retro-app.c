@@ -1,4 +1,4 @@
-/* retrospriteeditor-application.c
+/* retro-app.c
  *
  * Copyright 2023 vi
  *
@@ -71,22 +71,46 @@ retro_app_about_action (GSimpleAction *action,
                                             GVariant      *parameter,
                                             gpointer       user_data)
 {
-	static const char *developers[] = {"xverizex", NULL};
+	static const char *developers[] = {"xverizex <horisontdawn@yandex.ru>", NULL};
 	RetroApp *self = user_data;
 	GtkWindow *window = NULL;
-
-	g_assert (RETRO_IS_APP (self));
+	GtkWidget *about;
 
 	window = gtk_application_get_active_window (GTK_APPLICATION (self));
 
-	adw_show_about_window (window,
-	                       "application-name", "retrospriteeditor",
-	                       "application-icon", "io.github.xverizex.RetroSpriteEditor",
-	                       "developer-name", "xverizex",
-	                       "version", "0.1.0",
-	                       "developers", developers,
-	                       "copyright", "© 2023 xverizex",
-	                       NULL);
+	g_assert (RETRO_IS_APP (self));
+
+	about = adw_about_window_new ();
+	gtk_window_set_transient_for (GTK_WINDOW (about), window);
+
+	adw_about_window_set_license_type (ADW_ABOUT_WINDOW(about), GTK_LICENSE_GPL_3_0);
+	adw_about_window_set_application_name (ADW_ABOUT_WINDOW(about), APPLICATION_NAME);
+	adw_about_window_set_application_icon (ADW_ABOUT_WINDOW(about), "io.github.xverizex.RetroSpriteEditor");
+	adw_about_window_set_version (ADW_ABOUT_WINDOW(about), PACKAGE_VERSION);
+	adw_about_window_set_developers (ADW_ABOUT_WINDOW(about), developers);
+	adw_about_window_set_developer_name (ADW_ABOUT_WINDOW(about), DEVELOPER_NAME);
+	adw_about_window_set_copyright (ADW_ABOUT_WINDOW(about), "© 2023 xverizex");
+	adw_about_window_set_comments (ADW_ABOUT_WINDOW(about), "Pixel Editor for Retro Consoles");
+	adw_about_window_set_issue_url (ADW_ABOUT_WINDOW(about), "https://github.com/xverizex/RetroSpriteEditor/issues/new/choose");
+	adw_about_window_add_link (ADW_ABOUT_WINDOW (about),
+                                    "_Donate",
+                              "https://www.donationalerts.com/r/xverizex");
+	adw_about_window_add_link (ADW_ABOUT_WINDOW (about),
+                                    "_Source Code",
+                              "https://github.com/xverizex/RetroSpriteEditor");
+
+	gtk_window_present (GTK_WINDOW (about));
+
+        // Left this here in case.. uhh... uhhhhm....
+	//adw_show_about_window (window,
+	//                       "application-name", APPLICATION_NAME,
+	//                       "application-icon", "io.github.xverizex.RetroSpriteEditor",
+	//                       "developer-name", "xverizex",
+	//                       "version", PACKAGE_VERSION,
+	//                       "developers", developers,
+        //                       "comments", "Pixel Editor for Retro Consoles",
+	//                       "copyright", "© 2023 xverizex",
+	//                       NULL);
 }
 
 static void
@@ -116,4 +140,8 @@ retro_app_init (RetroApp *self)
 	gtk_application_set_accels_for_action (GTK_APPLICATION (self),
 	                                       "app.quit",
 	                                       (const char *[]) { "<primary>q", NULL });
+
+	gtk_application_set_accels_for_action (GTK_APPLICATION (self),
+	                                       "app.about",
+	                                       (const char *[]) { "F1", NULL });
 }
