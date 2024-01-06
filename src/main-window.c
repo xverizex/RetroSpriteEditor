@@ -454,8 +454,8 @@ main_window_create_nes_widgets (MainWindow *self)
 	global_type_palette_set_cur (NO_PLATFORM, 0);
 
 	self->hbox_nes_title_buttons = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
-	self->btn_nes_pixel_drawing = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", "Drawing", NULL);
-	self->btn_nes_screen = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", "Screen", NULL);
+	self->btn_nes_pixel_drawing = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", "DRAWING", NULL);
+	self->btn_nes_screen = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", "SCREEN", NULL);
 
 	gtk_box_append (GTK_BOX (self->hbox_nes_title_buttons), self->btn_nes_pixel_drawing);
 	gtk_box_append (GTK_BOX (self->hbox_nes_title_buttons), self->btn_nes_screen);
