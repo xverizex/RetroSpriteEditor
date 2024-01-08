@@ -485,7 +485,8 @@ action_new_project_nes (GSimpleAction *simple,
 		gpointer user_data)
 {
 	MainWindow *self = MAIN_WINDOW (user_data);
-        gtk_window_set_transient_for (GTK_WINDOW (self->new_project_nes_window), GTK_WINDOW(self));
+  gtk_window_set_transient_for (GTK_WINDOW (self->new_project_nes_window), GTK_WINDOW(self));
+	gtk_window_set_modal (GTK_WINDOW (self->new_project_nes_window), TRUE);
 	gtk_window_present (GTK_WINDOW (self->new_project_nes_window));
 }
 
