@@ -29,6 +29,7 @@ struct Project {
 	char *name_screen;
 	char *fullpath_to_project;
 	char *file_to_export;
+	char *filepath_to_export;
 	char *file_tile_mode;
 	NesConfig nes;
 };
@@ -128,15 +129,14 @@ write_header (xmlTextWriterPtr *writ)
 	int count_screen = global_get_screen_count ();
 	snprintf (str_count ,32,"%d", count_screen);
 
+	g_print ("fullpath: %s\n", prj->fullpath_to_project);
 	writer = xmlNewTextWriterFilename (prj->fullpath_to_project, 0);
 	xmlTextWriterStartDocument (writer, NULL, "UTF-8", NULL);
 	xmlTextWriterStartElement (writer, "RetroSpriteEditor");
 	xmlTextWriterStartElement (writer, "ProjectSettings");
 			xmlTextWriterWriteElement (writer, "platform_id", "0");
 			xmlTextWriterWriteElement (writer, "project_name", prj->name);
-			xmlTextWriterWriteElement (writer, "project_folder", prj->folder_path);
 			xmlTextWriterWriteElement (writer, "screen", prj->name_screen);
-			xmlTextWriterWriteElement (writer, "fullpath", prj->fullpath_to_project);
 			xmlTextWriterWriteElement (writer, "count_screen", str_count);
 	xmlTextWriterEndElement (writer);
 	xmlTextWriterStartElement (writer, "ExportSettings");
@@ -158,6 +158,9 @@ project_set_open_folder_and_name (const char *folder, const char *name)
 	}
 
 	prj->folder_path = g_strdup (folder);
+	if (prj->fullpath_to_project == NULL)
+		prj->fullpath_to_project = g_strdup_printf ("%s/%s.rse", folder, name);
+
 	memset (&prj->nes, 0, sizeof (NesConfig));
 }
 
@@ -173,7 +176,8 @@ project_set_folder_and_name (const char *folder, const char *name)
 	prj->folder_path = g_strdup (folder);
 	prj->name = g_strdup (name);
 	prj->fullpath_to_project = g_strdup_printf ("%s/%s.rse", folder, name);
-	prj->file_to_export = g_strdup_printf ("%s/%s.chr", folder, name);
+	prj->file_to_export = g_strdup_printf ("%s.chr", name);
+	prj->filepath_to_export = g_strdup_printf ("%s/%s.chr", folder, name);
 	prj->file_tile_mode = g_strdup_printf ("%s/%s.tile_modes", folder, name);
 	prj->name_screen = g_strdup_printf ("screen");
 	memset (&prj->nes, 0, sizeof (NesConfig));
@@ -194,7 +198,7 @@ project_get_filepath_to_export ()
 	if (prj->fullpath_to_project == NULL)
 		return NULL;
 
-	return prj->file_to_export;
+	return prj->filepath_to_export;
 }
 
 static const xmlChar *pname;
@@ -232,8 +236,6 @@ handle_nes_name_value (const xmlChar *name, const xmlChar *value)
 	int *count_screen = NULL;
 
 	check_and_write (name, "project_name", value, (void **) &prj->name, TYPE_STRING);
-	check_and_write (name, "project_folder", value, (void **) &prj->folder_path, TYPE_STRING);
-	check_and_write (name, "fullpath", value, (void **) &prj->fullpath_to_project, TYPE_STRING);
 	check_and_write (name, "outfile", value, (void **) &prj->file_to_export, TYPE_STRING);
 	check_and_write (name, "screen", value, (void **) &prj->name_screen, TYPE_STRING);
 	check_and_write (name, "count_screen", value, (void **) &count_screen, TYPE_INT);
@@ -286,7 +288,10 @@ process_nes_node (xmlTextReaderPtr reader)
 static void
 read_tilemap_and_set_nes (void)
 {
-	GFile *file = g_file_new_for_path (prj->file_to_export);
+	char *path = g_strdup_printf ("%s/%s", prj->folder_path, prj->file_to_export);
+	GFile *file = g_file_new_for_path (path);
+	g_free (path);
+
 	GFileInputStream *input = g_file_read (file,
 			NULL,
 			NULL);
@@ -507,6 +512,7 @@ static void
 open_nes_ref ()
 {
 	int max_refs = global_get_screen_count ();
+	g_print ("folder path: %s\n", prj->folder_path);
 
 	for (int indx = 0; indx < max_refs; indx++) {
 		gchar screen_ref[512];
