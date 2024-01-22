@@ -3,7 +3,7 @@
 
 <img style="vertical-align: middle;" src="data/icons/hicolor/scalable/apps/io.github.xverizex.RetroSpriteEditor.svg" width="128" height="128" align="left">
 
-# Retro Sprite Editor
+# Retro Sprite
 Draw your sprites and backgrounds with this program specially designed for retro consoles.</br>[Features](#features) · [Download](#download) · [New Issue](https://github.com/xverizex/RetroSpriteEditor/issues/new/choose)
 
 ## Donate ❤️

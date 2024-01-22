@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <component type="desktop">
   <id>io.github.xverizex.RetroSpriteEditor</id>
-  <name>Retro Sprite Editor</name>
+  <name>Retro Sprite</name>
   <summary>Pixel Editor for Retro Consoles</summary>
   <developer_name>Dmitrii Naidolinskii</developer_name>
   <metadata_license>CC0-1.0</metadata_license>
