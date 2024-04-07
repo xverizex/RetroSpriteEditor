@@ -3,7 +3,10 @@
   <id>io.github.xverizex.RetroSpriteEditor</id>
   <name>Retro Sprite</name>
   <summary>Pixel Editor for Retro Consoles</summary>
-  <name>Dmitrii Naidolinskii</name>
+  <developer>
+	  <id>master</id>
+	  <name>Dmitrii Naidolinsky</name>
+  </developer>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <update_contact>horisontdawn@yandex.ru</update_contact>

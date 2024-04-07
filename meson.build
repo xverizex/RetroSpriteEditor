@@ -1,10 +1,10 @@
 project('retrospriteeditor', 'c',
-          version: '0.2.44',
+          version: '0.2.45',
     meson_version: '>= 0.62.0',
   default_options: [ 'werror=false', 'c_std=gnu99', ],
 )
 
-application_name = 'Retro Sprite Editor'
+application_name = 'Retro Sprite'
 developer_name = 'xverizex'
 
 i18n = import('i18n')

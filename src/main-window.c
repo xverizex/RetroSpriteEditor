@@ -544,7 +544,7 @@ main_window_init (MainWindow *self)
 	g_menu_append_submenu (menu_root, "Import", G_MENU_MODEL (menu_import));
 	g_menu_append (menu_root, "Save", "win.save_project");
 	g_menu_append (menu_root, "Export", "win.export");
-	g_menu_append (menu_root, "About Retro Sprite Editor", "app.about");
+	g_menu_append (menu_root, "About Retro Sprite", "app.about");
 
 	self->new_project_nes_window = g_object_new (NES_TYPE_NEW_PROJECT,
 			NULL);
@@ -567,7 +567,7 @@ main_window_init (MainWindow *self)
 
   gtk_box_append (GTK_BOX (self->vert_layout), self->header_bar);
 
-	gtk_window_set_title (GTK_WINDOW (self), "Retro Sprite Editor");
+	gtk_window_set_title (GTK_WINDOW (self), "Retro Sprite");
 
 	main_window_create_nes_widgets (self);
 }
