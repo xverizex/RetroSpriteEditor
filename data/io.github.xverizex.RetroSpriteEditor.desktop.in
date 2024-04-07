@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=Retro Sprite Editor
+Name=Retro Sprite
 Exec=retrospriteeditor
 Icon=io.github.xverizex.RetroSpriteEditor
 Terminal=false

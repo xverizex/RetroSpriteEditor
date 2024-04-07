@@ -3,7 +3,7 @@
   <id>io.github.xverizex.RetroSpriteEditor</id>
   <name>Retro Sprite</name>
   <summary>Pixel Editor for Retro Consoles</summary>
-  <developer_name>Dmitrii Naidolinskii</developer_name>
+  <name>Dmitrii Naidolinskii</name>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <update_contact>horisontdawn@yandex.ru</update_contact>
@@ -33,6 +33,11 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="0.2.44" date="2024-04-8" type="stable">
+      <description>
+        <p>Fixed name.</p>
+      </description>
+    </release>
     <release version="0.2.43" date="2024-04-8" type="stable">
       <description>
         <p>Fixed icon.</p>
