@@ -33,6 +33,11 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="0.2.43" date="2024-04-8" type="stable">
+      <description>
+        <p>Fixed icon.</p>
+      </description>
+    </release>
     <release version="0.2.42" date="2024-04-8" type="stable">
       <description>
         <p>Fixed icon.</p>
