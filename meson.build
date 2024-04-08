@@ -1,5 +1,5 @@
 project('retrospriteeditor', 'c',
-          version: '0.2.47',
+          version: '0.2.48',
     meson_version: '>= 0.62.0',
   default_options: [ 'werror=false', 'c_std=gnu99', ],
 )
